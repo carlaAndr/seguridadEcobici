@@ -56,9 +56,6 @@ casoEcobici/
 ├── [ubicación del notebook GráficasDeAnalisis.ipynb por confirmar]
 └── README.md
 ```
-
-**Nota:** la estructura refleja la organización reportada para los archivos procesados y los notebooks de ingesta. Las ubicaciones definitivas de `Experimento(1).ipynb` y `GráficasDeAnalisis.ipynb` deben actualizarse cuando se confirme dónde se subirán. Los elementos entre corchetes son descripciones, no nombres reales de archivos.
-
 ## 3. Fuentes de información
 
 | Fuente | Información utilizada | Frecuencia de análisis | Función en el proyecto |
