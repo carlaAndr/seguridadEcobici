@@ -210,7 +210,7 @@ Los notebooks fueron desarrollados para **Python en Google Colab** y varios util
 - **INEGI — Finanzas públicas:** estadísticas de finanzas públicas estatales y municipales / demarcaciones territoriales de la Ciudad de México.
 ## 8. Uso de inteligencia artificial y transparencia metodológica
   
-  - Durante el desarrollo de este proyecto se utilizaron herramientas de inteligencia artificial generativa, particularmente ChatGPT, desarrollado por OpenAI, como apoyo en distintas etapas del proceso de investigación y desarrollo computacional.
+  - Durante el desarrollo de este proyecto se utilizaron herramientas de inteligencia artificial generativa, particularmente ChatGPT y Claude.ia como apoyo en distintas etapas del proceso de investigación y desarrollo computacional.
   - Su utilización se concentró principalmente en las siguientes actividades:
   - Procesamiento de datos: apoyo en la identificación de inconsistencias, homologación de estructuras de información y construcción de bases de datos para el análisis.
   - Visualización de información: apoyo en la construcción y mejora de gráficas, mapas y representaciones de resultados estadísticos.
