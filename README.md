@@ -91,8 +91,8 @@ La inversión pública corresponde a una categoría agregada de gasto y **no deb
 | `dataIngestion/LecturaDatosENSU.ipynb` | Integración ENSU | Extrae indicadores y construye la base trimestral de percepción de seguridad por alcaldía. |
 | `dataIngestion/LecturadeDatosInversionPublica.ipynb` | Integración financiera | Limpia y consolida los montos de inversión pública por alcaldía y año. |
 | `dataIngestion/MapasdeSeguridad.ipynb` | Visualización espacial | Explora la distribución geográfica de los indicadores de seguridad. |
-| `GráficasDeAnalisis.ipynb` | Análisis exploratorio | Compara viajes, percepción de seguridad y correlaciones a lo largo del tiempo. Ubicación en el repositorio pendiente de confirmar. |
-| `Experimento(1).ipynb` | Modelado econométrico | Integra el panel y estima modelos de regresión con efectos fijos, además de producir diagnósticos y gráficas. Ubicación pendiente de confirmar. |
+| `GráficasDeAnalisis.ipynb` | Análisis exploratorio | Compara viajes, percepción de seguridad y correlaciones a lo largo del tiempo. |
+| `Experimento(1).ipynb` | Modelado econométrico | Integra el panel y estima modelos de regresión con efectos fijos, además de producir diagnósticos y gráficas. | 
 
 ### Flujo de datos
 
