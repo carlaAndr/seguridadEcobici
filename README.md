@@ -166,32 +166,33 @@ La base contiene **tres trimestres de 2020**, **cuatro por año entre 2021 y 202
 
 La unidad principal de observación es la **alcaldía–trimestre**. El notebook `Experimento(1).ipynb` implementa regresiones de panel de **efectos fijos por alcaldía y por periodo**.
 
+
 Una especificación considerada en el proyecto es:
 
-\[
-\log(1+\mathrm{Viajes}_{it}) = \beta_1\mathrm{Inseguridad}_{it} + \beta_2\mathrm{Estaciones}_{it} + \beta_3\log(1+\mathrm{Inversi\acute{o}n}_{it}) + \alpha_i + \gamma_t + \varepsilon_{it}
-\]
+$$
+\begin{aligned}
+\log(1+\mathrm{Viajes}_{it}) = {}&
+\beta_1\mathrm{Inseguridad}_{it} \\
+&+\beta_2\mathrm{Estaciones}_{it} \\
+&+\beta_3\log(1+\mathrm{Inversión}_{it}) \\
+&+\alpha_i+\gamma_t+\varepsilon_{it}
+\end{aligned}
+$$
 
 Donde:
 
-- **\(i\)** identifica la alcaldía y **\(t\)** el trimestre.
-- **\(\mathrm{Viajes}_{it}\)** es el total de viajes agregados para la unidad territorial y temporal.
-- **\(\mathrm{Inseguridad}_{it}\)** es el porcentaje de percepción de inseguridad derivado de ENSU.
-- **\(\mathrm{Estaciones}_{it}\)** mide estaciones activas en la alcaldía.
-- **\(\mathrm{Inversi\acute{o}n}_{it}\)** es el control de inversión pública, presente solo en las especificaciones que lo incluyen.
-- **\(\alpha_i\)** representa efectos fijos de alcaldía y **\(\gamma_t\)** efectos fijos temporales.
+- $i$ identifica la alcaldía y $t$ el trimestre.
+- $\mathrm{Viajes}_{it}$ es el total de viajes agregados para la unidad territorial y temporal.
+- $\mathrm{Inseguridad}_{it}$ es el porcentaje de percepción de inseguridad derivado de ENSU.
+- $\mathrm{Estaciones}_{it}$ mide las estaciones activas en la alcaldía.
+- $\mathrm{Inversión}_{it}$ es el control de inversión pública, presente solo en las especificaciones que lo incluyen.
+- $\alpha_i$ representa los efectos fijos de alcaldía y $\gamma_t$ los efectos fijos temporales.
+- $\varepsilon_{it}$ representa el término de error.
 
 El notebook contempla especificaciones **con y sin inversión pública**, además de análisis agregados y desagregados por género. Incluye comparaciones de coeficientes, intervalos de confianza y ejercicios de diagnóstico, como la comparación entre efectos fijos y aleatorios.
 
-### Precauciones de interpretación
 
-1. **Identificación causal:** los efectos fijos controlan heterogeneidad invariante de cada alcaldía y choques temporales comunes, pero no eliminan automáticamente confusión que varía a través del tiempo.
-2. **Inferencia con pocos grupos:** agrupar errores estándar por alcaldía con solamente seis unidades territoriales requiere cautela en las pruebas convencionales de significancia.
-3. **Frecuencias diferentes:** la inversión pública anual debe vincularse de manera consistente con los trimestres; repetir el mismo monto anual no crea cuatro mediciones financieras independientes.
-4. **Cobertura y calidad:** deben documentarse periodos faltantes, cruces no encontrados en el catálogo de estaciones y diferencias de disponibilidad de 2026.
-5. **Resultados preliminares:** las asociaciones descriptivas y los coeficientes estimados no se presentan aquí como efectos causales confirmados.
-
-## 7. Cómo ejecutar el proyecto
+## 6. Cómo ejecutar el proyecto
 
 Los notebooks fueron desarrollados para **Python en Google Colab** y varios utilizan archivos alojados en **Google Drive**. Para reproducirlos:
 
@@ -202,19 +203,7 @@ Los notebooks fueron desarrollados para **Python en Google Colab** y varios util
 5. Ejecutar primero las etapas de mapeo y lectura de las fuentes, verificando la generación de los archivos de `artefactos/`.
 6. Revisar las correspondencias territoriales y temporales, ejecutar el análisis exploratorio y finalmente el notebook econométrico.
 
-**Reproducibilidad:** no se incluye todavía un `requirements.txt` validado ni rutas relativas unificadas. Algunas fuentes históricas y rutas de Google Drive pueden requerir ajustes manuales. El repositorio debe considerarse un proyecto de investigación en desarrollo, no una canalización completamente automatizada.
-
-## 8. Limitaciones y trabajo pendiente
-
-- Conciliar la diferencia entre el archivo ENSU inicialmente identificado como módulo II y la sección/hoja efectivamente consultada por `LecturaDatosENSU.ipynb`.
-- Verificar registros de estaciones sin correspondencia (`SIN_CATALOGO`) y posibles cambios históricos de identificadores.
-- Documentar el tratamiento de categorías de género y observaciones excluidas de las regresiones.
-- Revisar el efecto de la disponibilidad parcial de datos de 2026 y de la inversión pública hasta 2025 sobre las muestras estimadas.
-- Evaluar inferencia robusta apropiada para un número reducido de alcaldías.
-- Estandarizar nombres de archivos, rutas, dependencias y orden de ejecución para facilitar la reproducción.
-- Incorporar resultados definitivos, tablas de regresión y visualizaciones ejecutivas una vez validados.
-
-## 9. Fuentes y referencias institucionales
+## 7. Fuentes y referencias institucionales
 
 - **ECOBICI:** registros históricos y datos abiertos del sistema de bicicletas públicas de la Ciudad de México.
 - **INEGI — ENSU:** Encuesta Nacional de Seguridad Pública Urbana, tabulados básicos históricos.
