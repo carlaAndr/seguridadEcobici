@@ -208,8 +208,20 @@ Los notebooks fueron desarrollados para **Python en Google Colab** y varios util
 - **ECOBICI:** registros históricos y datos abiertos del sistema de bicicletas públicas de la Ciudad de México.
 - **INEGI — ENSU:** Encuesta Nacional de Seguridad Pública Urbana, tabulados básicos históricos.
 - **INEGI — Finanzas públicas:** estadísticas de finanzas públicas estatales y municipales / demarcaciones territoriales de la Ciudad de México.
+## 8. Uso de inteligencia artificial y transparencia metodológica
+  
+  - Durante el desarrollo de este proyecto se utilizaron herramientas de inteligencia artificial generativa, particularmente ChatGPT, desarrollado por OpenAI, como apoyo en distintas etapas del proceso de investigación y desarrollo computacional.
+  - Su utilización se concentró principalmente en las siguientes actividades:
+  - Procesamiento de datos: apoyo en la identificación de inconsistencias, homologación de estructuras de información y construcción de bases de datos para el análisis.
+  - Visualización de información: apoyo en la construcción y mejora de gráficas, mapas y representaciones de resultados estadísticos.
+  - Documentación técnica: asistencia en la elaboración de descripciones metodológicas, comentarios de código y documentación del repositorio.
 
-Para usar este repositorio en investigaciones posteriores, se recomienda consultar la documentación oficial y las notas metodológicas de cada fuente, especialmente ante cambios en cobertura, definiciones o procedimientos de estimación.
+  **Responsabilidad sobre la investigación**
+
+  La inteligencia artificial se utilizó como una herramienta de asistencia técnica y conceptual, no como sustituto del criterio científico.
+  
+  La definición del problema de investigación, selección de fuentes de información, planteamiento de hipótesis, decisiones metodológicas e interpretación final de   los hallazgos permanecen bajo responsabilidad de la autora del proyecto.
+  Para usar este repositorio en investigaciones posteriores, se recomienda consultar la documentación oficial y las notas metodológicas de cada fuente,       especialmente ante cambios en cobertura, definiciones o procedimientos de estimación.
 
 ---
 
