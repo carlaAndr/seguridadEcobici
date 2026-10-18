@@ -96,6 +96,7 @@ La inversión pública corresponde a una categoría agregada de gasto y **no deb
 
 ### Flujo de datos
 
+
 ```text
 Registros históricos ECOBICI ──> LecturaEcobici ────────────┐
 Catálogo y geografía ────────> MapeoAlcaldias ──────────────┤
@@ -164,6 +165,10 @@ La base contiene **tres trimestres de 2020**, **cuatro por año entre 2021 y 202
 
 ## 6. Estrategia econométrica
 
+ Diagrama causal
+
+![Diagrama causal del modelo ECOBICI](images/diagrama.png)
+  
 La unidad principal de observación es la **alcaldía–trimestre**. El notebook `Experimento(1).ipynb` implementa regresiones de panel de **efectos fijos por alcaldía y por periodo**.
 
 
