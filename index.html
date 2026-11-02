@@ -1,1 +1,1142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seguridad percibida y movilidad ciclista · Panel ECOBICI</title>
+<meta name="description" content="Tablero del caso: percepción de inseguridad (ENSU) y viajes de ECOBICI por alcaldía y trimestre en la Ciudad de México, con el modelo de efectos fijos.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚲</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,300..800;1,100,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --paper:#EBEFEA; --surface:#FBFCFA; --ink:#17232A; --muted:#55666C; --line:#C9D2CD; --grid:#DDE3DF;
+  --lane:#1D7F55; --lane-ink:#FFFFFF; --mark:#F4F6F3; --alert:#B8322B; --focus:#2F6DB5;
+  --font:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#121A1D; --surface:#19242A; --ink:#E4EBE7; --muted:#9AABA9; --line:#2D3C41; --grid:#243237;
+    --lane:#36B57A; --lane-ink:#0F1A15; --mark:#1F2C31; --alert:#EC6A60; --focus:#7FB0EE;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#121A1D; --surface:#19242A; --ink:#E4EBE7; --muted:#9AABA9; --line:#2D3C41; --grid:#243237;
+  --lane:#36B57A; --lane-ink:#0F1A15; --mark:#1F2C31; --alert:#EC6A60; --focus:#7FB0EE;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:1001;background:var(--ink)}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:3px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
 
+/* ---------- Cabecera: la calle ---------- */
+.street{background:var(--ink);color:var(--paper);position:relative;overflow:hidden}
+.street .wrap{padding-top:clamp(36px,6vw,72px);padding-bottom:0}
+.kicker{font-size:.95rem;color:color-mix(in srgb,var(--paper) 72%,transparent);margin:0 0 14px}
+h1{font-stretch:118%;font-weight:760;font-size:clamp(2.1rem,5.6vw,4.4rem);line-height:.98;letter-spacing:-.02em;margin:0;max-width:16ch}
+.sub{font-size:clamp(1.02rem,1.6vw,1.2rem);max-width:62ch;margin:18px 0 0;color:color-mix(in srgb,var(--paper) 84%,transparent)}
+.byline{margin:20px 0 0;font-size:.92rem;color:color-mix(in srgb,var(--paper) 70%,transparent)}
+.byline a{color:inherit;text-underline-offset:3px}
+.finding{margin:30px 0 0;max-width:70ch;font-size:1.02rem;padding:14px 18px;border-left:6px solid var(--lane);background:color-mix(in srgb,var(--paper) 7%,transparent)}
+.finding b{font-weight:700}
+
+/* carriles = pestañas */
+.lanes{display:flex;gap:0;margin-top:clamp(28px,4vw,44px);position:relative}
+.lanes::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;
+  background:repeating-linear-gradient(90deg,var(--paper) 0 34px,transparent 34px 60px);opacity:.55}
+.lane{appearance:none;border:0;cursor:pointer;font:inherit;font-stretch:112%;font-weight:700;font-size:clamp(1rem,1.8vw,1.25rem);
+  color:var(--paper);background:transparent;padding:22px clamp(18px,3vw,34px) 18px;display:flex;align-items:center;gap:12px;
+  text-decoration:none;border-top:4px solid transparent;margin-top:0}
+.lane svg{width:28px;height:28px;flex:none;opacity:.6}
+.lane[aria-selected="true"]{background:var(--lane);color:var(--lane-ink);border-top-color:var(--lane)}
+.lane[aria-selected="true"] svg{opacity:1}
+.lane:not([aria-selected="true"]):hover{background:color-mix(in srgb,var(--paper) 9%,transparent)}
+.lane small{display:block;font-weight:450;font-stretch:100%;font-size:.78rem;opacity:.8;margin-top:1px}
+
+/* ---------- Secciones ---------- */
+main.wrap{padding-top:clamp(32px,4.5vw,52px);padding-bottom:64px}
+.view[hidden]{display:none}
+.lede{max-width:72ch;font-size:1.05rem;margin:0 0 28px;color:var(--ink)}
+.lede em{font-style:normal;font-weight:650}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border-top:2px solid var(--ink);border-bottom:1px solid var(--line);margin:0 0 40px}
+.fact{padding:14px 16px 16px 0}
+.fact + .fact{padding-left:16px;border-left:1px solid var(--line)}
+.fact strong{display:block;font-stretch:112%;font-size:1.7rem;font-weight:700;line-height:1.1}
+.fact span{font-size:.86rem;color:var(--muted)}
+
+h2{font-stretch:112%;font-weight:720;font-size:clamp(1.35rem,2.3vw,1.75rem);letter-spacing:-.01em;line-height:1.15;margin:0 0 6px}
+h3{font-weight:680;font-size:1.06rem;line-height:1.25;margin:0}
+.caption{color:var(--muted);font-size:.9rem;margin:4px 0 0;max-width:68ch}
+
+.block{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px clamp(14px,2vw,24px) 14px}
+.block-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:12px 20px;margin-bottom:10px}
+.charts{display:grid;grid-template-columns:repeat(12,1fr);gap:20px;margin-top:20px}
+.span-6{grid-column:span 6}.span-12{grid-column:span 12}.span-7{grid-column:span 7}.span-5{grid-column:span 5}
+@media (max-width:900px){.span-6,.span-7,.span-5{grid-column:span 12}}
+.plot{width:100%;height:340px}
+.plot.tall{height:420px}
+
+/* controles segmentados */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--paper);flex-wrap:wrap}
+.seg button{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.84rem;font-weight:600;padding:6px 13px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:not([aria-pressed="true"]):hover{color:var(--ink)}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* ---------- Mapa ---------- */
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+#mapa{height:560px;min-height:420px;background:var(--mark)}
+@media (max-width:600px){#mapa{height:440px}}
+.side{border-left:1px solid var(--line);padding:18px 18px 16px;display:flex;flex-direction:column;gap:16px}
+@media (max-width:900px){.side{border-left:0;border-top:1px solid var(--line)}}
+.side label.l{display:block;font-size:.84rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.period{font-stretch:115%;font-weight:760;font-size:2rem;line-height:1}
+.slider-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--lane)}
+.play{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);width:38px;height:38px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none}
+.play svg{width:16px;height:16px}
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rank li button{appearance:none;width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:6px 4px;border-radius:4px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.rank li button:hover{background:var(--paper)}
+.rank .nm{font-size:.92rem;font-weight:600}
+.rank .vl{font-size:.92rem;font-weight:650}
+.rank .bar{grid-column:1 / -1;height:5px;border-radius:3px;background:var(--grid);overflow:hidden}
+.rank .bar i{display:block;height:100%}
+.rank li.na .nm,.rank li.na .vl{color:var(--muted);font-weight:450}
+.legend{font-size:.8rem;color:var(--muted)}
+.legend .ramp{height:10px;border-radius:2px;margin:6px 0 3px}
+.legend .ends{display:flex;justify-content:space-between}
+.mapnote{font-size:.8rem;color:var(--muted);margin:0}
+.leaflet-container{font-family:var(--font)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
+.leaflet-popup-content{margin:12px 14px;font-size:.88rem;line-height:1.4}
+.pop h4{margin:0 0 6px;font-size:1rem;font-stretch:110%}
+.pop dl{display:grid;grid-template-columns:auto auto;gap:2px 14px;margin:0}
+.pop dt{color:var(--muted)} .pop dd{margin:0;text-align:right;font-weight:600}
+.leaflet-bar a{background:var(--surface);color:var(--ink);border-color:var(--line)}
+
+/* ---------- Modelo ---------- */
+.eq{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-size:clamp(1.05rem,2vw,1.45rem);line-height:1.6;overflow-x:auto;white-space:nowrap;padding:16px 0 6px}
+.eq i{font-style:italic}
+.eq .b{color:var(--lane);font-weight:700}
+.defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 28px;margin:10px 0 0;font-size:.9rem;color:var(--muted)}
+.defs b{color:var(--ink);font-weight:600}
+.readout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;margin-top:20px}
+@media (max-width:900px){.readout{grid-template-columns:1fr}}
+.beta{font-stretch:118%;font-weight:760;font-size:clamp(2.4rem,5vw,3.6rem);line-height:1;letter-spacing:-.02em;margin:10px 0 4px}
+.ci{font-size:1rem;color:var(--muted);margin:0 0 14px}
+.verdict{font-size:1.02rem;max-width:60ch;margin:0;padding-top:14px;border-top:1px solid var(--line)}
+.tag{display:inline-block;font-size:.8rem;font-weight:650;padding:3px 9px;border-radius:999px;background:var(--paper);border:1px solid var(--line);margin-top:12px}
+.tag.ok{border-color:var(--lane);color:var(--lane)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:600;color:var(--muted);border-bottom:2px solid var(--ink)}
+tbody tr.key td{font-weight:700}
+.tablewrap{overflow-x:auto}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:.85rem;color:var(--muted);margin-top:12px}
+.notes{max-width:76ch;margin-top:28px}
+.notes p{margin:0 0 12px}
+.notes h3{margin-bottom:8px}
+
+footer.wrap{border-top:1px solid var(--line);padding-top:24px;padding-bottom:40px;color:var(--muted);font-size:.86rem}
+footer p{margin:0 0 6px;max-width:90ch}
+.err{background:color-mix(in srgb,var(--alert) 12%,var(--surface));border:1px solid var(--alert);padding:14px 16px;border-radius:6px;margin-bottom:24px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="street">
+  <div class="wrap">
+    <p class="kicker">Trabajo de titulación por caso, Ciencia de Datos, ITAM</p>
+    <h1>Seguridad percibida y movilidad ciclista</h1>
+    <p class="sub">Evidencia de datos panel para ECOBICI en la Ciudad de México: viajes por alcaldía y trimestre frente a la proporción de personas que se sienten inseguras según la ENSU.</p>
+    <p class="byline">Carla Andrea Sosa Peralta &nbsp;|&nbsp; <a href="https://github.com/carlaAndr/seguridadEcobici">Repositorio y código de replicación</a></p>
+    <p class="finding" id="hallazgo">Calculando el modelo principal…</p>
+
+    <nav class="lanes" role="tablist" aria-label="Secciones del tablero">
+      <a class="lane" role="tab" id="tab-datos" href="#datos" aria-controls="datos" aria-selected="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="21.5" r="5.5"/><circle cx="24.5" cy="21.5" r="5.5"/><path d="M7.5 21.5 12.5 11h9l3 10.5M12.5 11 16.5 21.5h-9M15 7h4.5M21.5 11 19.5 7"/></svg>
+        <span>Datos<small>El panel, el mapa y cinco gráficas</small></span>
+      </a>
+      <a class="lane" role="tab" id="tab-modelo" href="#modelo" aria-controls="modelo" aria-selected="false">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 26h24M7 26V16M13 26V9M19 26V13M25 26V5"/></svg>
+        <span>Modelo<small>Efectos fijos e inferencia</small></span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="error"></div>
+
+  <!-- =================== DATOS =================== -->
+  <section id="datos" class="view" role="tabpanel" aria-labelledby="tab-datos">
+    <p class="lede">La unidad de análisis es la <em>alcaldía en un trimestre</em>. Cada fila cruza los viajes de ECOBICI que inician en la alcaldía con el porcentaje de población de 18 años y más que se siente insegura en su ciudad (ENSU, cuadro 1.7), las estaciones activas y la inversión pública. El panel no está balanceado: Coyoacán, Azcapotzalco y Álvaro Obregón se incorporan en 2023, conforme el sistema se expande.</p>
+
+    <div class="facts" id="facts"></div>
+
+    <div class="block-head">
+      <div>
+        <h2>Mapa de percepción y uso</h2>
+        <p class="caption">Cada círculo es una alcaldía con ECOBICI. El color mide la variable elegida y el tamaño, los viajes del trimestre. Mueve el control de tiempo o presiona reproducir para ver la evolución.</p>
+      </div>
+    </div>
+    <div class="mapgrid">
+      <div id="mapa" role="region" aria-label="Mapa interactivo de la Ciudad de México"></div>
+      <aside class="side">
+        <div>
+          <label class="l" id="lbl-var">Qué medir</label>
+          <div class="seg" role="group" aria-labelledby="lbl-var" id="map-var">
+            <button type="button" data-v="ins" aria-pressed="true">Inseguridad</button>
+            <button type="button" data-v="seg" aria-pressed="false">Seguridad</button>
+            <button type="button" data-v="via" aria-pressed="false">Viajes</button>
+          </div>
+        </div>
+        <div>
+          <label class="l" for="map-t">Trimestre</label>
+          <div class="period" id="map-period">—</div>
+          <div class="slider-row" style="margin-top:10px">
+            <button type="button" class="play" id="map-play" aria-label="Reproducir la evolución trimestral">
+              <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+            </button>
+            <input type="range" id="map-t" min="0" max="0" step="1" value="0">
+          </div>
+        </div>
+        <div class="legend" id="map-legend"></div>
+        <div>
+          <label class="l" id="lbl-rank">Ordenadas por la variable elegida</label>
+          <ul class="rank" id="map-rank" aria-labelledby="lbl-rank"></ul>
+        </div>
+        <p class="mapnote" id="map-note"></p>
+      </aside>
+    </div>
+
+    <div class="charts">
+      <article class="block span-12">
+        <div class="block-head">
+          <div>
+            <h3>Viajes por trimestre en cada alcaldía</h3>
+            <p class="caption">La variable dependiente antes del logaritmo. Los huecos son trimestres sin observación.</p>
+          </div>
+          <div class="seg" role="group" aria-label="Grupo de viajes" id="g1-grp">
+            <button type="button" data-g="T" aria-pressed="true">Total</button>
+            <button type="button" data-g="F" aria-pressed="false">Mujeres</button>
+            <button type="button" data-g="M" aria-pressed="false">Hombres</button>
+          </div>
+        </div>
+        <div class="plot" id="g1"></div>
+      </article>
+
+      <article class="block span-6">
+        <div class="block-head"><div>
+          <h3>Percepción de inseguridad por alcaldía</h3>
+          <p class="caption">Porcentaje que se siente inseguro en su ciudad, ENSU cuadro 1.7. Es la variable explicativa de interés.</p>
+        </div></div>
+        <div class="plot" id="g2"></div>
+      </article>
+
+      <article class="block span-6">
+        <div class="block-head"><div>
+          <h3>Cobertura del panel</h3>
+          <p class="caption">Qué alcaldía tiene dato en qué trimestre. El color es el total de viajes en escala logarítmica.</p>
+        </div></div>
+        <div class="plot" id="g3"></div>
+      </article>
+
+      <article class="block span-7">
+        <div class="block-head">
+          <div>
+            <h3>Viajes e inseguridad: entre y dentro de alcaldías</h3>
+            <p class="caption" id="g4-cap"></p>
+          </div>
+          <div class="seg" role="group" aria-label="Tipo de comparación" id="g4-mode">
+            <button type="button" data-m="raw" aria-pressed="true">Entre alcaldías</button>
+            <button type="button" data-m="within" aria-pressed="false">Dentro de cada alcaldía</button>
+          </div>
+        </div>
+        <div class="plot tall" id="g4"></div>
+      </article>
+
+      <article class="block span-5">
+        <div class="block-head"><div>
+          <h3>Quién viaja: composición por género</h3>
+          <p class="caption">Participación de cada registro de género en los viajes del año, en las alcaldías del panel. 2026 incluye solo el primer trimestre.</p>
+        </div></div>
+        <div class="plot tall" id="g5"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- =================== MODELO =================== -->
+  <section id="modelo" class="view" role="tabpanel" aria-labelledby="tab-modelo" hidden>
+    <p class="lede">El modelo compara a cada alcaldía consigo misma a lo largo del tiempo. Los efectos fijos de alcaldía absorben lo que no cambia (ubicación, densidad, infraestructura base) y los de trimestre absorben lo que afecta a toda la ciudad a la vez (estacionalidad, pandemia, tarifas). Las estimaciones se recalculan aquí mismo a partir del archivo del panel.</p>
+
+    <article class="block">
+      <h2>Especificación</h2>
+      <div class="eq" aria-label="Ecuación del modelo">
+        log(1 + <i>viajes</i><sub><i>it</i></sub>) = <span class="b">β<sub>1</sub></span>·<i>inseguro</i><sub><i>it</i></sub> + γ·<i>estaciones</i><sub><i>it</i></sub><span id="eq-inv"></span> + α<sub><i>i</i></sub> + δ<sub><i>t</i></sub> + ε<sub><i>it</i></sub>
+      </div>
+      <div class="defs">
+        <div><b>i</b>: alcaldía; <b>t</b>: trimestre</div>
+        <div><b>inseguro</b>: % que se siente inseguro (ENSU 1.7), en puntos porcentuales</div>
+        <div><b>estaciones</b>: estaciones ECOBICI activas</div>
+        <div><b>α<sub>i</sub>, δ<sub>t</sub></b>: efectos fijos; errores agrupados por alcaldía</div>
+      </div>
+      <p class="caption" style="margin-top:12px">Hipótesis: H₀: β₁ = 0 contra H₁: β₁ &lt; 0, es decir, que más inseguridad percibida se asocie con menos viajes.</p>
+    </article>
+
+    <div class="ctrls" style="margin-top:24px">
+      <div class="seg" role="group" aria-label="Grupo" id="m-grp">
+        <button type="button" data-g="T" aria-pressed="true">Total de viajes</button>
+        <button type="button" data-g="F" aria-pressed="false">Mujeres</button>
+        <button type="button" data-g="M" aria-pressed="false">Hombres</button>
+      </div>
+      <div class="seg" role="group" aria-label="Especificación" id="m-spec">
+        <button type="button" data-s="1" aria-pressed="true">Ejercicio 1</button>
+        <button type="button" data-s="2" aria-pressed="false">Ejercicio 2: con inversión pública</button>
+      </div>
+    </div>
+
+    <div class="readout">
+      <article class="block">
+        <h3>Efecto estimado de la inseguridad percibida</h3>
+        <div class="beta" id="m-beta">—</div>
+        <p class="ci" id="m-ci"></p>
+        <p class="verdict" id="m-verdict"></p>
+        <span class="tag" id="m-tag"></span>
+      </article>
+      <article class="block">
+        <h3>Coeficientes</h3>
+        <div class="tablewrap"><table id="m-table" aria-label="Tabla de coeficientes"></table></div>
+        <div class="meta" id="m-meta"></div>
+      </article>
+    </div>
+
+    <div class="charts">
+      <article class="block span-6">
+        <div class="block-head"><div>
+          <h3>β₁ en todas las especificaciones</h3>
+          <p class="caption">Estimación puntual e intervalo de confianza al 95 %. La línea punteada marca el cero; la especificación elegida aparece resaltada.</p>
+        </div></div>
+        <div class="plot" id="m1"></div>
+      </article>
+      <article class="block span-6">
+        <div class="block-head"><div>
+          <h3>Robustez: quitar una alcaldía a la vez</h3>
+          <p class="caption">Cómo cambia β₁ al excluir cada alcaldía de la especificación elegida. La línea vertical es la estimación con todas.</p>
+        </div></div>
+        <div class="plot" id="m2"></div>
+      </article>
+      <article class="block span-6">
+        <div class="block-head"><div>
+          <h3>¿Responden distinto mujeres y hombres?</h3>
+          <p class="caption">Modelo conjunto con la interacción inseguro × mujer, mismos efectos fijos y errores agrupados.</p>
+        </div></div>
+        <div id="m-diff"></div>
+      </article>
+      <article class="block span-6">
+        <div class="block-head"><div>
+          <h3>Observado contra ajustado</h3>
+          <p class="caption">Cada punto es una alcaldía en un trimestre. La mayor parte del ajuste proviene de los efectos fijos, no de la inseguridad.</p>
+        </div></div>
+        <div class="plot" id="m3"></div>
+      </article>
+    </div>
+
+    <div class="notes">
+      <h3>Cómo leer la inferencia</h3>
+      <p>Con solo seis alcaldías hay seis grupos para los errores agrupados, así que los errores estándar son imprecisos y tienden a subestimarse. Por eso los valores p y los intervalos usan la distribución t con G − 1 grados de libertad (5 con todas las alcaldías, 4 al quitar una) y la corrección CR1 para muestras pequeñas.</p>
+      <p>No rechazar H₀ no demuestra que la inseguridad no importe. Indica que, con esta muestra y esta medición, no se detecta una relación distinguible de cero. La percepción se mide a nivel ciudad dentro de cada alcaldía y no en el trayecto, lo que puede diluir un efecto real.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p id="fuente"></p>
+  <p>Fuentes: datos abiertos de viajes de ECOBICI; INEGI, Encuesta Nacional de Seguridad Pública Urbana (ENSU), cuadro 1.7; inversión pública por alcaldía (EFIPEM). Mapa base © OpenStreetMap y CARTO.</p>
+</footer>
+
+<script type="text/csv" id="csv-respaldo">
+anio,trimestre,alcaldia_norm,genero,n_viajes,estaciones_activas,inseguro_pct,seguro_pct,inversion_publica,log_viajes,log_inversion
+2020,1,BENITO JUAREZ,F,86788,143,49.0239982826425,50.9760017173575,216133458.0,11.371235164507157,19.19140663596196
+2020,1,BENITO JUAREZ,M,272308,143,49.0239982826425,50.9760017173575,216133458.0,12.514692729896776,19.19140663596196
+2020,1,CUAUHTEMOC,F,268974,183,68.4874883939522,30.9877463061246,207036359.0,12.50237371746211,19.14840498314845
+2020,1,CUAUHTEMOC,M,771214,183,68.4874883939522,30.9877463061246,207036359.0,13.55572247229679,19.14840498314845
+2020,1,MIGUEL HIDALGO,F,87960,107,66.1228719849421,33.0267291282604,285671157.0,11.384648813408075,19.47035190655687
+2020,1,MIGUEL HIDALGO,M,271449,107,66.1228719849421,33.0267291282604,285671157.0,12.511533239333597,19.47035190655687
+2020,3,BENITO JUAREZ,F,44275,143,39.2784741542526,60.7215258457474,216133458.0,10.698198048505514,19.19140663596196
+2020,3,BENITO JUAREZ,M,109223,143,39.2784741542526,60.7215258457474,216133458.0,11.601156098364587,19.19140663596196
+2020,3,CUAUHTEMOC,F,119629,182,65.4342543551486,34.5657456448514,207036359.0,11.69215892516495,19.14840498314845
+2020,3,CUAUHTEMOC,M,306609,182,65.4342543551486,34.5657456448514,207036359.0,12.633331860674009,19.14840498314845
+2020,3,MIGUEL HIDALGO,F,32670,107,62.2755148150539,37.7244851849461,285671157.0,10.394243113248184,19.47035190655687
+2020,3,MIGUEL HIDALGO,M,86402,107,62.2755148150539,37.7244851849461,285671157.0,11.366777676411568,19.47035190655687
+2020,4,BENITO JUAREZ,F,48329,143,35.3181430604485,64.6818569395515,216133458.0,10.785807764839129,19.19140663596196
+2020,4,BENITO JUAREZ,M,122551,143,35.3181430604485,64.6818569395515,216133458.0,11.716290708692531,19.19140663596196
+2020,4,CUAUHTEMOC,F,134062,182,70.2821169552124,29.7178830447876,207036359.0,11.806065117701248,19.14840498314845
+2020,4,CUAUHTEMOC,M,338456,182,70.2821169552124,29.7178830447876,207036359.0,12.732152332246141,19.14840498314845
+2020,4,MIGUEL HIDALGO,F,37154,107,68.833022357524,31.166977642476,285671157.0,10.52285363059157,19.47035190655687
+2020,4,MIGUEL HIDALGO,M,93133,107,68.833022357524,31.166977642476,285671157.0,11.441794595307403,19.47035190655687
+2021,1,BENITO JUAREZ,F,51156,143,34.9785923601961,65.0214076398039,158627943.0,10.842654614411254,18.882072037018208
+2021,1,BENITO JUAREZ,M,112495,143,34.9785923601961,65.0214076398039,158627943.0,11.630672944438942,18.882072037018208
+2021,1,CUAUHTEMOC,F,137302,182,65.7151297701922,34.2848702298078,86122877.0,11.82994544148094,18.271285636776568
+2021,1,CUAUHTEMOC,M,310457,182,65.7151297701922,34.2848702298078,86122877.0,12.645803905505957,18.271285636776568
+2021,1,MIGUEL HIDALGO,F,39085,107,62.6354386136835,36.8023911019648,204864841.0,10.573519625590022,19.137861007465695
+2021,1,MIGUEL HIDALGO,M,86077,107,62.6354386136835,36.8023911019648,204864841.0,11.36300914092495,19.137861007465695
+2021,2,BENITO JUAREZ,F,61502,142,32.1508669335635,67.8491330664365,158627943.0,11.026841233092684,18.882072037018208
+2021,2,BENITO JUAREZ,M,144326,142,32.1508669335635,67.8491330664365,158627943.0,11.879836837446145,18.882072037018208
+2021,2,CUAUHTEMOC,F,174114,184,56.7825114645155,43.2174885354845,86122877.0,12.067471279425762,18.271285636776568
+2021,2,CUAUHTEMOC,M,393625,184,56.7825114645155,43.2174885354845,86122877.0,12.883156498889143,18.271285636776568
+2021,2,MIGUEL HIDALGO,F,50213,107,59.0461889456027,40.7990629482267,204864841.0,10.82404915126093,19.137861007465695
+2021,2,MIGUEL HIDALGO,M,115144,107,59.0461889456027,40.7990629482267,204864841.0,11.653947482682117,19.137861007465695
+2021,3,BENITO JUAREZ,F,56929,142,21.8011019329671,78.1988980670329,158627943.0,10.949577721945127,18.882072037018208
+2021,3,BENITO JUAREZ,M,149608,142,21.8011019329671,78.1988980670329,158627943.0,11.915780503140756,18.882072037018208
+2021,3,CUAUHTEMOC,F,158477,183,63.0237251085693,36.9762748914307,86122877.0,11.973371061403856,18.271285636776568
+2021,3,CUAUHTEMOC,M,409238,183,63.0237251085693,36.9762748914307,86122877.0,12.922054616435986,18.271285636776568
+2021,3,MIGUEL HIDALGO,F,45323,107,62.1736034182624,37.6541443996738,204864841.0,10.721591972500457,19.137861007465695
+2021,3,MIGUEL HIDALGO,M,118548,107,62.1736034182624,37.6541443996738,204864841.0,11.68308165619859,19.137861007465695
+2021,4,BENITO JUAREZ,F,67401,141,27.5300654631367,71.936440052283,158627943.0,11.11842997005065,18.882072037018208
+2021,4,BENITO JUAREZ,M,179424,141,27.5300654631367,71.936440052283,158627943.0,12.097512572298273,18.882072037018208
+2021,4,CUAUHTEMOC,F,189987,183,61.0739446779986,38.9260553220014,86122877.0,12.154716191253343,18.271285636776568
+2021,4,CUAUHTEMOC,M,493814,183,61.0739446779986,38.9260553220014,86122877.0,13.109916232102572,18.271285636776568
+2021,4,MIGUEL HIDALGO,F,59658,107,75.646292240908,24.353707759092,204864841.0,10.996400296278916,19.137861007465695
+2021,4,MIGUEL HIDALGO,M,156066,107,75.646292240908,24.353707759092,204864841.0,11.958040681207942,19.137861007465695
+2022,1,BENITO JUAREZ,F,76627,141,25.0226859021382,74.9773140978618,203259212.0,11.24671782418499,19.12999262885835
+2022,1,BENITO JUAREZ,M,196990,141,25.0226859021382,74.9773140978618,203259212.0,12.190913321397334,19.12999262885835
+2022,1,CUAUHTEMOC,F,211370,183,64.8599953645193,35.1400046354807,183547174.0,12.261370162308047,19.027982271438823
+2022,1,CUAUHTEMOC,M,530187,183,64.8599953645193,35.1400046354807,183547174.0,13.180986939612241,19.027982271438823
+2022,1,MIGUEL HIDALGO,F,66302,107,64.5441320547457,35.218062524122,146728924.0,11.101990424019032,18.804097387959732
+2022,1,MIGUEL HIDALGO,M,167567,107,64.5441320547457,35.218062524122,146728924.0,12.029144518012927,18.804097387959732
+2022,2,BENITO JUAREZ,F,91935,142,24.1906662135348,75.8093337864652,203259212.0,11.428847961779017,19.12999262885835
+2022,2,BENITO JUAREZ,M,230845,142,24.1906662135348,75.8093337864652,203259212.0,12.349506100516226,19.12999262885835
+2022,2,CUAUHTEMOC,F,255690,183,68.6291856987761,31.1661303816907,183547174.0,12.451724963162764,19.027982271438823
+2022,2,CUAUHTEMOC,M,626208,183,68.6291856987761,31.1661303816907,183547174.0,13.347439460176142,19.027982271438823
+2022,2,MIGUEL HIDALGO,F,85567,107,42.6871694360778,57.0718701811526,146728924.0,11.357066660461616,18.804097387959732
+2022,2,MIGUEL HIDALGO,M,206482,107,42.6871694360778,57.0718701811526,146728924.0,12.237973363539174,18.804097387959732
+2022,3,BENITO JUAREZ,F,59573,143,20.6016487620703,78.6739281009357,203259212.0,10.99497451626165,19.12999262885835
+2022,3,BENITO JUAREZ,M,169501,143,20.6016487620703,78.6739281009357,203259212.0,12.04062000514306,19.12999262885835
+2022,3,BENITO JUAREZ,O,5594,143,20.6016487620703,78.6739281009357,203259212.0,8.629628620746026,19.12999262885835
+2022,3,CUAUHTEMOC,F,166204,179,68.2960620855717,31.7039379144283,183547174.0,12.020977245186824,19.027982271438823
+2022,3,CUAUHTEMOC,M,447113,179,68.2960620855717,31.7039379144283,183547174.0,13.010568874637224,19.027982271438823
+2022,3,CUAUHTEMOC,O,3765,179,68.2960620855717,31.7039379144283,183547174.0,8.233768709217097,19.027982271438823
+2022,3,MIGUEL HIDALGO,F,46995,93,48.3966145324584,50.9227869775566,146728924.0,10.757817770687463,18.804097387959732
+2022,3,MIGUEL HIDALGO,M,121371,93,48.3966145324584,50.9227869775566,146728924.0,11.706615488501344,18.804097387959732
+2022,3,MIGUEL HIDALGO,O,34,93,48.3966145324584,50.9227869775566,146728924.0,3.5553480614894135,18.804097387959732
+2022,4,BENITO JUAREZ,F,68623,79,19.4303506159469,80.5696493840531,203259212.0,11.136397606756661,19.12999262885835
+2022,4,BENITO JUAREZ,M,206770,79,19.4303506159469,80.5696493840531,203259212.0,12.239367179674652,19.12999262885835
+2022,4,BENITO JUAREZ,O,14233,79,19.4303506159469,80.5696493840531,203259212.0,9.563388747859216,19.12999262885835
+2022,4,CUAUHTEMOC,F,167008,121,64.418412148468,34.9091382319183,183547174.0,12.025802982162327,19.027982271438823
+2022,4,CUAUHTEMOC,M,478225,121,64.418412148468,34.9091382319183,183547174.0,13.07783870308459,19.027982271438823
+2022,4,CUAUHTEMOC,O,23666,121,64.418412148468,34.9091382319183,183547174.0,10.0718369517632,19.027982271438823
+2022,4,MIGUEL HIDALGO,F,32291,52,47.7912882869016,51.631667445933,146728924.0,10.382574800514906,18.804097387959732
+2022,4,MIGUEL HIDALGO,M,91950,52,47.7912882869016,51.631667445933,146728924.0,11.429011105449131,18.804097387959732
+2022,4,MIGUEL HIDALGO,O,3202,52,47.7912882869016,51.631667445933,146728924.0,8.071843149609158,18.804097387959732
+2023,1,BENITO JUAREZ,?,4,117,19.4366573585235,80.5633426414765,194419630.0,1.6094379124341003,19.085529422258997
+2023,1,BENITO JUAREZ,F,96736,117,19.4366573585235,80.5633426414765,194419630.0,11.47975123493892,19.085529422258997
+2023,1,BENITO JUAREZ,M,277954,117,19.4366573585235,80.5633426414765,194419630.0,12.535214509066734,19.085529422258997
+2023,1,BENITO JUAREZ,O,13296,117,19.4366573585235,80.5633426414765,194419630.0,9.495293724856706,19.085529422258997
+2023,1,COYOACAN,F,892,5,51.208223098346,47.4235828142389,429664460.0,6.794586580876499,19.878515136458006
+2023,1,COYOACAN,M,2585,5,51.208223098346,47.4235828142389,429664460.0,7.857867559331803,19.878515136458006
+2023,1,COYOACAN,O,122,5,51.208223098346,47.4235828142389,429664460.0,4.812184355372417,19.878515136458006
+2023,1,CUAUHTEMOC,?,3,189,58.4878477662871,40.624891187019,191531221.0,1.3862943611198906,19.070561387238946
+2023,1,CUAUHTEMOC,F,344999,189,58.4878477662871,40.624891187019,191531221.0,12.751299696013497,19.070561387238946
+2023,1,CUAUHTEMOC,M,906527,189,58.4878477662871,40.624891187019,191531221.0,13.717377196730906,19.070561387238946
+2023,1,CUAUHTEMOC,O,33342,189,58.4878477662871,40.624891187019,191531221.0,10.414603134260247,19.070561387238946
+2023,1,MIGUEL HIDALGO,?,2,96,46.120338707051,53.879661292949,285870705.0,1.0986122886681098,19.471050186145384
+2023,1,MIGUEL HIDALGO,F,106637,96,46.120338707051,53.879661292949,285870705.0,11.577195199988047,19.471050186145384
+2023,1,MIGUEL HIDALGO,M,277615,96,46.120338707051,53.879661292949,285870705.0,12.533994142841452,19.471050186145384
+2023,1,MIGUEL HIDALGO,O,8597,96,46.120338707051,53.879661292949,285870705.0,9.059284897056227,19.471050186145384
+2023,2,BENITO JUAREZ,?,6,148,19.8211356475603,80.0073581685353,194419630.0,1.9459101490553132,19.085529422258997
+2023,2,BENITO JUAREZ,F,142761,148,19.8211356475603,80.0073581685353,194419630.0,11.868934187032442,19.085529422258997
+2023,2,BENITO JUAREZ,M,390684,148,19.8211356475603,80.0073581685353,194419630.0,12.87565688767753,19.085529422258997
+2023,2,BENITO JUAREZ,O,14409,148,19.8211356475603,80.0073581685353,194419630.0,9.575677688993569,19.085529422258997
+2023,2,COYOACAN,F,3508,5,40.2034506002498,59.7965493997503,429664460.0,8.163086375583216,19.878515136458006
+2023,2,COYOACAN,M,8698,5,40.2034506002498,59.7965493997503,429664460.0,9.07096335550754,19.878515136458006
+2023,2,COYOACAN,O,400,5,40.2034506002498,59.7965493997503,429664460.0,5.993961427306569,19.878515136458006
+2023,2,CUAUHTEMOC,?,12,201,60.7449733538849,39.2550266461151,191531221.0,2.5649493574615367,19.070561387238946
+2023,2,CUAUHTEMOC,F,454820,201,60.7449733538849,39.2550266461151,191531221.0,13.027659213935005,19.070561387238946
+2023,2,CUAUHTEMOC,M,1146531,201,60.7449733538849,39.2550266461151,191531221.0,13.952252291924172,19.070561387238946
+2023,2,CUAUHTEMOC,O,38689,201,60.7449733538849,39.2550266461151,191531221.0,10.563336447694558,19.070561387238946
+2023,2,MIGUEL HIDALGO,?,4,124,38.3944225330604,61.6055774669396,285870705.0,1.6094379124341003,19.471050186145384
+2023,2,MIGUEL HIDALGO,F,157268,124,38.3944225330604,61.6055774669396,285870705.0,11.96571299397279,19.471050186145384
+2023,2,MIGUEL HIDALGO,M,400448,124,38.3944225330604,61.6055774669396,285870705.0,12.90034169655805,19.471050186145384
+2023,2,MIGUEL HIDALGO,O,10499,124,38.3944225330604,61.6055774669396,285870705.0,9.259130536145614,19.471050186145384
+2023,3,BENITO JUAREZ,F,178253,174,15.7663859982921,84.2336140017079,194419630.0,12.090964778417467,19.085529422258997
+2023,3,BENITO JUAREZ,M,469522,174,15.7663859982921,84.2336140017079,194419630.0,13.059472564715978,19.085529422258997
+2023,3,BENITO JUAREZ,O,17048,174,15.7663859982921,84.2336140017079,194419630.0,9.74384682996523,19.085529422258997
+2023,3,COYOACAN,F,6720,23,47.5270978133117,52.4729021866883,429664460.0,8.812992231969966,19.878515136458006
+2023,3,COYOACAN,M,17598,23,47.5270978133117,52.4729021866883,429664460.0,9.775597361230211,19.878515136458006
+2023,3,COYOACAN,O,734,23,47.5270978133117,52.4729021866883,429664460.0,6.5998704992128365,19.878515136458006
+2023,3,CUAUHTEMOC,?,4,216,60.7468215465014,38.8887343324338,191531221.0,1.6094379124341003,19.070561387238946
+2023,3,CUAUHTEMOC,F,525389,216,60.7468215465014,38.8887343324338,191531221.0,13.17189612293482,19.070561387238946
+2023,3,CUAUHTEMOC,M,1318505,216,60.7468215465014,38.8887343324338,191531221.0,14.092009835390835,19.070561387238946
+2023,3,CUAUHTEMOC,O,42565,216,60.7468215465014,38.8887343324338,191531221.0,10.658811091522749,19.070561387238946
+2023,3,MIGUEL HIDALGO,?,6,127,44.8626387947662,54.645895961123,285870705.0,1.9459101490553132,19.471050186145384
+2023,3,MIGUEL HIDALGO,F,200737,127,44.8626387947662,54.645895961123,285870705.0,12.209755854181763,19.471050186145384
+2023,3,MIGUEL HIDALGO,M,508877,127,44.8626387947662,54.645895961123,285870705.0,13.139963581145308,19.471050186145384
+2023,3,MIGUEL HIDALGO,O,12570,127,44.8626387947662,54.645895961123,285870705.0,9.43914785291483,19.471050186145384
+2023,4,ALVARO OBREGON,F,3805,11,64.0886048920909,35.2141970280508,463746425.0,8.244334047856094,19.954848462961326
+2023,4,ALVARO OBREGON,M,10397,11,64.0886048920909,35.2141970280508,463746425.0,9.24936875894366,19.954848462961326
+2023,4,ALVARO OBREGON,O,302,11,64.0886048920909,35.2141970280508,463746425.0,5.713732805509369,19.954848462961326
+2023,4,AZCAPOTZALCO,F,1897,11,53.8781002195636,44.3997736680664,279153796.0,7.5485559791698735,19.44727342805197
+2023,4,AZCAPOTZALCO,M,5716,11,53.8781002195636,44.3997736680664,279153796.0,8.651199471263972,19.44727342805197
+2023,4,AZCAPOTZALCO,O,144,11,53.8781002195636,44.3997736680664,279153796.0,4.976733742420574,19.44727342805197
+2023,4,BENITO JUAREZ,F,233177,205,15.1741259108987,84.1876568904486,194419630.0,12.359557389385571,19.085529422258997
+2023,4,BENITO JUAREZ,M,602566,205,15.1741259108987,84.1876568904486,194419630.0,13.308954141483818,19.085529422258997
+2023,4,BENITO JUAREZ,O,19729,205,15.1741259108987,84.1876568904486,194419630.0,9.889895599016661,19.085529422258997
+2023,4,COYOACAN,F,16333,37,46.9545882810123,51.97656642385,429664460.0,9.70100410391822,19.878515136458006
+2023,4,COYOACAN,M,41909,37,46.9545882810123,51.97656642385,429664460.0,10.643279740919118,19.878515136458006
+2023,4,COYOACAN,O,1496,37,46.9545882810123,51.97656642385,429664460.0,7.311218384419629,19.878515136458006
+2023,4,CUAUHTEMOC,?,5,233,59.2047374846352,40.7952625153648,191531221.0,1.791759469228055,19.070561387238946
+2023,4,CUAUHTEMOC,F,646233,233,59.2047374846352,40.7952625153648,191531221.0,13.378916946277783,19.070561387238946
+2023,4,CUAUHTEMOC,M,1555321,233,59.2047374846352,40.7952625153648,191531221.0,14.257193156113603,19.070561387238946
+2023,4,CUAUHTEMOC,O,47776,233,59.2047374846352,40.7952625153648,191531221.0,10.774299631131253,19.070561387238946
+2023,4,MIGUEL HIDALGO,?,2,134,46.3568951255968,53.6431048744032,285870705.0,1.0986122886681098,19.471050186145384
+2023,4,MIGUEL HIDALGO,F,238852,134,46.3568951255968,53.6431048744032,285870705.0,12.383603578923445,19.471050186145384
+2023,4,MIGUEL HIDALGO,M,600825,134,46.3568951255968,53.6431048744032,285870705.0,13.306060654128189,19.471050186145384
+2023,4,MIGUEL HIDALGO,O,13861,134,46.3568951255968,53.6431048744032,285870705.0,9.53690656247793,19.471050186145384
+2024,1,ALVARO OBREGON,F,10989,12,65.5372062612073,33.3834480490498,544357506.0,9.304741047397666,20.115116769118966
+2024,1,ALVARO OBREGON,M,29519,12,65.5372062612073,33.3834480490498,544357506.0,10.292823278714408,20.115116769118966
+2024,1,ALVARO OBREGON,O,742,12,65.5372062612073,33.3834480490498,544357506.0,6.610696044717759,20.115116769118966
+2024,1,AZCAPOTZALCO,F,14274,24,55.3375054872078,43.3936832389721,397728165.0,9.56626503452421,19.801279327383675
+2024,1,AZCAPOTZALCO,M,35205,24,55.3375054872078,43.3936832389721,397728165.0,10.468971801605917,19.801279327383675
+2024,1,AZCAPOTZALCO,O,907,24,55.3375054872078,43.3936832389721,397728165.0,6.811244378601294,19.801279327383675
+2024,1,BENITO JUAREZ,?,1,212,11.0539556401006,88.5489889297232,321627165.0,0.6931471805599453,19.58890355998542
+2024,1,BENITO JUAREZ,F,330077,212,11.0539556401006,88.5489889297232,321627165.0,12.707084269149544,19.58890355998542
+2024,1,BENITO JUAREZ,M,806252,212,11.0539556401006,88.5489889297232,321627165.0,13.60015286801543,19.58890355998542
+2024,1,BENITO JUAREZ,O,26835,212,11.0539556401006,88.5489889297232,321627165.0,10.197499548682778,19.58890355998542
+2024,1,COYOACAN,F,30714,37,47.7980037413595,50.570770954121,556509638.0,10.332506413598027,20.137195047487673
+2024,1,COYOACAN,M,69355,37,47.7980037413595,50.570770954121,556509638.0,11.147007939664563,20.137195047487673
+2024,1,COYOACAN,O,2921,37,47.7980037413595,50.570770954121,556509638.0,7.980023592310645,20.137195047487673
+2024,1,CUAUHTEMOC,?,25,243,51.6832805241164,45.0577576492011,262076172.0,3.258096538021482,19.3841457522952
+2024,1,CUAUHTEMOC,F,784639,243,51.6832805241164,45.0577576492011,262076172.0,13.572980292849874,19.3841457522952
+2024,1,CUAUHTEMOC,M,1854529,243,51.6832805241164,45.0577576492011,262076172.0,14.433141852648019,19.3841457522952
+2024,1,CUAUHTEMOC,O,54805,243,51.6832805241164,45.0577576492011,262076172.0,10.911554955993713,19.3841457522952
+2024,1,MIGUEL HIDALGO,?,6,137,32.3379816047133,65.8612421359846,417214501.0,1.9459101490553132,19.849111038396725
+2024,1,MIGUEL HIDALGO,F,294091,137,32.3379816047133,65.8612421359846,417214501.0,12.591647922540018,19.849111038396725
+2024,1,MIGUEL HIDALGO,M,725217,137,32.3379816047133,65.8612421359846,417214501.0,13.49422757829391,19.849111038396725
+2024,1,MIGUEL HIDALGO,O,16152,137,32.3379816047133,65.8612421359846,417214501.0,9.689861069913759,19.849111038396725
+2024,2,ALVARO OBREGON,F,15983,17,54.999245823749,42.5272131930566,544357506.0,9.679343500888335,20.115116769118966
+2024,2,ALVARO OBREGON,M,39576,17,54.999245823749,42.5272131930566,544357506.0,10.586003420427412,20.115116769118966
+2024,2,ALVARO OBREGON,O,1104,17,54.999245823749,42.5272131930566,544357506.0,7.007600613951853,20.115116769118966
+2024,2,AZCAPOTZALCO,F,24024,24,67.0076839366503,32.8724444419893,397728165.0,10.086850233838494,19.801279327383675
+2024,2,AZCAPOTZALCO,M,59917,24,67.0076839366503,32.8724444419893,397728165.0,11.000732239796932,19.801279327383675
+2024,2,AZCAPOTZALCO,O,1561,24,67.0076839366503,32.8724444419893,397728165.0,7.3537223303996315,19.801279327383675
+2024,2,BENITO JUAREZ,?,19,213,18.913754182786,79.9492978968526,321627165.0,2.995732273553991,19.58890355998542
+2024,2,BENITO JUAREZ,F,410055,213,18.913754182786,79.9492978968526,321627165.0,12.924049014719412,19.58890355998542
+2024,2,BENITO JUAREZ,M,970848,213,18.913754182786,79.9492978968526,321627165.0,13.785926225396834,19.58890355998542
+2024,2,BENITO JUAREZ,O,30106,213,18.913754182786,79.9492978968526,321627165.0,10.312512981839049,19.58890355998542
+2024,2,COYOACAN,?,1,37,41.6493929523245,58.3506070476755,556509638.0,0.6931471805599453,20.137195047487673
+2024,2,COYOACAN,F,39422,37,41.6493929523245,58.3506070476755,556509638.0,10.582104681311748,20.137195047487673
+2024,2,COYOACAN,M,85715,37,41.6493929523245,58.3506070476755,556509638.0,11.358794784942972,20.137195047487673
+2024,2,COYOACAN,O,3530,37,41.6493929523245,58.3506070476755,556509638.0,8.169336395928386,20.137195047487673
+2024,2,CUAUHTEMOC,?,10,243,51.7373059081547,47.7197273063046,262076172.0,2.3978952727983707,19.3841457522952
+2024,2,CUAUHTEMOC,F,889586,243,51.7373059081547,47.7197273063046,262076172.0,13.698512589062327,19.3841457522952
+2024,2,CUAUHTEMOC,M,2090260,243,51.7373059081547,47.7197273063046,262076172.0,14.552799496526863,19.3841457522952
+2024,2,CUAUHTEMOC,O,58136,243,51.7373059081547,47.7197273063046,262076172.0,10.970557573194359,19.3841457522952
+2024,2,MIGUEL HIDALGO,?,3,137,36.0187200101977,63.9812799898023,417214501.0,1.3862943611198906,19.849111038396725
+2024,2,MIGUEL HIDALGO,F,341180,137,36.0187200101977,63.9812799898023,417214501.0,12.740168407234377,19.849111038396725
+2024,2,MIGUEL HIDALGO,M,828537,137,36.0187200101977,63.9812799898023,417214501.0,13.627417980819875,19.849111038396725
+2024,2,MIGUEL HIDALGO,O,19128,137,36.0187200101977,63.9812799898023,417214501.0,9.858960787152654,19.849111038396725
+2024,3,ALVARO OBREGON,F,17782,17,50.3343892429144,49.2786941685798,544357506.0,9.785998223743661,20.115116769118966
+2024,3,ALVARO OBREGON,M,49149,17,50.3343892429144,49.2786941685798,544357506.0,10.802632125575313,20.115116769118966
+2024,3,ALVARO OBREGON,O,1366,17,50.3343892429144,49.2786941685798,544357506.0,7.220373836723949,20.115116769118966
+2024,3,AZCAPOTZALCO,F,25061,28,50.5745958048874,49.0732015549664,397728165.0,10.129108033725231,19.801279327383675
+2024,3,AZCAPOTZALCO,M,62786,28,50.5745958048874,49.0732015549664,397728165.0,11.047503324658088,19.801279327383675
+2024,3,AZCAPOTZALCO,O,1719,28,50.5745958048874,49.0732015549664,397728165.0,7.450079569807499,19.801279327383675
+2024,3,BENITO JUAREZ,?,51,213,17.5342506827648,81.4165527684147,321627165.0,3.9512437185814275,19.58890355998542
+2024,3,BENITO JUAREZ,F,379220,213,17.5342506827648,81.4165527684147,321627165.0,12.845874427576438,19.58890355998542
+2024,3,BENITO JUAREZ,M,904565,213,17.5342506827648,81.4165527684147,321627165.0,13.715210549646295,19.58890355998542
+2024,3,BENITO JUAREZ,O,29606,213,17.5342506827648,81.4165527684147,321627165.0,10.295766098840117,19.58890355998542
+2024,3,COYOACAN,?,2,37,41.1689492851516,58.3468108667608,556509638.0,1.0986122886681098,20.137195047487673
+2024,3,COYOACAN,F,34975,37,41.1689492851516,58.3468108667608,556509638.0,10.462417390976265,20.137195047487673
+2024,3,COYOACAN,M,83737,37,41.1689492851516,58.3468108667608,556509638.0,11.33544815583915,20.137195047487673
+2024,3,COYOACAN,O,3245,37,41.1689492851516,58.3468108667608,556509638.0,8.085178748074537,20.137195047487673
+2024,3,CUAUHTEMOC,?,4,243,51.716611929274,46.1288074481803,262076172.0,1.6094379124341003,19.3841457522952
+2024,3,CUAUHTEMOC,F,820579,243,51.716611929274,46.1288074481803,262076172.0,13.61776668628278,19.3841457522952
+2024,3,CUAUHTEMOC,M,1967949,243,51.716611929274,46.1288074481803,262076172.0,14.49250294976752,19.3841457522952
+2024,3,CUAUHTEMOC,O,54735,243,51.716611929274,46.1288074481803,262076172.0,10.910276907217385,19.3841457522952
+2024,3,MIGUEL HIDALGO,?,3,139,38.1064532656972,61.8935467343028,417214501.0,1.3862943611198906,19.849111038396725
+2024,3,MIGUEL HIDALGO,F,324069,139,38.1064532656972,61.8935467343028,417214501.0,12.688714820821875,19.849111038396725
+2024,3,MIGUEL HIDALGO,M,790635,139,38.1064532656972,61.8935467343028,417214501.0,13.580592963844715,19.849111038396725
+2024,3,MIGUEL HIDALGO,O,17865,139,38.1064532656972,61.8935467343028,417214501.0,9.790654744261785,19.849111038396725
+2024,4,ALVARO OBREGON,?,226,17,66.1527373404157,31.9913068050127,544357506.0,5.424950017481403,20.115116769118966
+2024,4,ALVARO OBREGON,F,18239,17,66.1527373404157,31.9913068050127,544357506.0,9.811372263628323,20.115116769118966
+2024,4,ALVARO OBREGON,M,50921,17,66.1527373404157,31.9913068050127,544357506.0,10.838050329197731,20.115116769118966
+2024,4,ALVARO OBREGON,O,1470,17,66.1527373404157,31.9913068050127,544357506.0,7.293697720601438,20.115116769118966
+2024,4,AZCAPOTZALCO,?,337,28,56.7272389019299,43.1332315588459,397728165.0,5.823045895483019,19.801279327383675
+2024,4,AZCAPOTZALCO,F,27943,28,56.7272389019299,43.1332315588459,397728165.0,10.237957786486668,19.801279327383675
+2024,4,AZCAPOTZALCO,M,69592,28,56.7272389019299,43.1332315588459,397728165.0,11.150419266551891,19.801279327383675
+2024,4,AZCAPOTZALCO,O,1821,28,56.7272389019299,43.1332315588459,397728165.0,7.507690077819904,19.801279327383675
+2024,4,BENITO JUAREZ,?,3367,213,20.7375322633281,77.8337338436131,321627165.0,8.122074375362217,19.58890355998542
+2024,4,BENITO JUAREZ,F,371246,213,20.7375322633281,77.8337338436131,321627165.0,12.824622888258316,19.58890355998542
+2024,4,BENITO JUAREZ,M,907944,213,20.7375322633281,77.8337338436131,321627165.0,13.718939083061606,19.58890355998542
+2024,4,BENITO JUAREZ,O,29693,213,20.7375322633281,77.8337338436131,321627165.0,10.29870028417994,19.58890355998542
+2024,4,COYOACAN,?,475,37,45.8920022596735,53.5060608222358,556509638.0,6.16541785423142,20.137195047487673
+2024,4,COYOACAN,F,36907,37,45.8920022596735,53.5060608222358,556509638.0,10.516183608698446,20.137195047487673
+2024,4,COYOACAN,M,88881,37,45.8920022596735,53.5060608222358,556509638.0,11.395064926310566,20.137195047487673
+2024,4,COYOACAN,O,3036,37,45.8920022596735,53.5060608222358,556509638.0,8.01862546504575,20.137195047487673
+2024,4,CUAUHTEMOC,?,14544,243,53.9221477082511,45.5200281470899,262076172.0,9.585002570929301,19.3841457522952
+2024,4,CUAUHTEMOC,F,827435,243,53.9221477082511,45.5200281470899,262076172.0,13.626087041852628,19.3841457522952
+2024,4,CUAUHTEMOC,M,2000074,243,53.9221477082511,45.5200281470899,262076172.0,14.508695237821112,19.3841457522952
+2024,4,CUAUHTEMOC,O,55905,243,53.9221477082511,45.5200281470899,262076172.0,10.931426987909191,19.3841457522952
+2024,4,MIGUEL HIDALGO,?,5669,139,40.2106958441947,59.7893041558053,417214501.0,8.642944396721798,19.849111038396725
+2024,4,MIGUEL HIDALGO,F,332402,139,40.2106958441947,59.7893041558053,417214501.0,12.714103367193461,19.849111038396725
+2024,4,MIGUEL HIDALGO,M,811025,139,40.2106958441947,59.7893041558053,417214501.0,13.606055391769855,19.849111038396725
+2024,4,MIGUEL HIDALGO,O,18556,139,40.2106958441947,59.7893041558053,417214501.0,9.828602355344339,19.849111038396725
+2025,1,ALVARO OBREGON,?,796,17,56.8264987403905,43.1735012596095,593100436.0,6.680854678790215,20.200874311929237
+2025,1,ALVARO OBREGON,F,17813,17,56.8264987403905,43.1735012596095,593100436.0,9.787739943991815,20.200874311929237
+2025,1,ALVARO OBREGON,M,49027,17,56.8264987403905,43.1735012596095,593100436.0,10.800146842461055,20.200874311929237
+2025,1,ALVARO OBREGON,O,1221,17,56.8264987403905,43.1735012596095,593100436.0,7.108244139731541,20.200874311929237
+2025,1,AZCAPOTZALCO,?,1313,28,61.9244204509368,38.0755795490632,313118142.0,7.1808311990445555,19.562091127767147
+2025,1,AZCAPOTZALCO,F,27997,28,61.9244204509368,38.0755795490632,313118142.0,10.23988835803477,19.562091127767147
+2025,1,AZCAPOTZALCO,M,68776,28,61.9244204509368,38.0755795490632,313118142.0,11.138624665704375,19.562091127767147
+2025,1,AZCAPOTZALCO,O,2236,28,61.9244204509368,38.0755795490632,313118142.0,7.71289096149013,19.562091127767147
+2025,1,BENITO JUAREZ,?,14101,213,20.3659041572033,79.3093496292021,382650482.0,9.554071910278985,19.762632550856154
+2025,1,BENITO JUAREZ,F,351142,213,20.3659041572033,79.3093496292021,382650482.0,12.768948826887547,19.762632550856154
+2025,1,BENITO JUAREZ,M,866437,213,20.3659041572033,79.3093496292021,382650482.0,13.672145833356234,19.762632550856154
+2025,1,BENITO JUAREZ,O,27245,213,20.3659041572033,79.3093496292021,382650482.0,10.212662000326006,19.762632550856154
+2025,1,COYOACAN,?,1936,37,40.5856682873723,58.8659365802803,565858223.0,7.5688956634069955,20.153854115390455
+2025,1,COYOACAN,F,35975,37,40.5856682873723,58.8659365802803,565858223.0,10.490607328450544,20.153854115390455
+2025,1,COYOACAN,M,86640,37,40.5856682873723,58.8659365802803,565858223.0,11.36952842362119,20.153854115390455
+2025,1,COYOACAN,O,2982,37,40.5856682873723,58.8659365802803,565858223.0,8.000684784514748,20.153854115390455
+2025,1,CUAUHTEMOC,?,42890,243,60.301413896718,38.8517727177437,338194374.0,10.666417292697274,19.639131359163244
+2025,1,CUAUHTEMOC,F,769877,243,60.301413896718,38.8517727177437,338194374.0,13.553987339718235,19.639131359163244
+2025,1,CUAUHTEMOC,M,1868991,243,60.301413896718,38.8517727177437,338194374.0,14.440909806064708,19.639131359163244
+2025,1,CUAUHTEMOC,O,52370,243,60.301413896718,38.8517727177437,338194374.0,10.86610828199289,19.639131359163244
+2025,1,MIGUEL HIDALGO,?,17200,139,42.0376799264514,57.9623200735486,367067059.0,9.75272280064639,19.721055111398044
+2025,1,MIGUEL HIDALGO,F,305030,139,42.0376799264514,57.9623200735486,367067059.0,12.628168689768883,19.721055111398044
+2025,1,MIGUEL HIDALGO,M,759497,139,42.0376799264514,57.9623200735486,367067059.0,13.540412967703109,19.721055111398044
+2025,1,MIGUEL HIDALGO,O,16484,139,42.0376799264514,57.9623200735486,367067059.0,9.710206155505832,19.721055111398044
+2025,2,ALVARO OBREGON,?,1186,17,62.8284334149263,37.1715665850737,593100436.0,7.079184394609668,20.200874311929237
+2025,2,ALVARO OBREGON,F,17457,17,62.8284334149263,37.1715665850737,593100436.0,9.767553275295295,20.200874311929237
+2025,2,ALVARO OBREGON,M,44143,17,62.8284334149263,37.1715665850737,593100436.0,10.695212296457067,20.200874311929237
+2025,2,ALVARO OBREGON,O,1244,17,62.8284334149263,37.1715665850737,593100436.0,7.126890808898808,20.200874311929237
+2025,2,AZCAPOTZALCO,?,1723,28,63.3939778368485,35.9077458145079,313118142.0,7.452402451223638,19.562091127767147
+2025,2,AZCAPOTZALCO,F,26249,28,63.3939778368485,35.9077458145079,313118142.0,10.17542126801977,19.562091127767147
+2025,2,AZCAPOTZALCO,M,65221,28,63.3939778368485,35.9077458145079,313118142.0,11.085552114313185,19.562091127767147
+2025,2,AZCAPOTZALCO,O,2429,28,63.3939778368485,35.9077458145079,313118142.0,7.795646536334594,19.562091127767147
+2025,2,BENITO JUAREZ,?,20494,213,22.0408102956604,77.9591897043396,382650482.0,9.927936232938437,19.762632550856154
+2025,2,BENITO JUAREZ,F,334595,213,22.0408102956604,77.9591897043396,382650482.0,12.72067911289078,19.762632550856154
+2025,2,BENITO JUAREZ,M,812172,213,22.0408102956604,77.9591897043396,382650482.0,13.607468650638188,19.762632550856154
+2025,2,BENITO JUAREZ,O,25411,213,22.0408102956604,77.9591897043396,382650482.0,10.142976782386423,19.762632550856154
+2025,2,COYOACAN,?,2749,37,42.4838069164162,57.5161930835838,565858223.0,7.919356190660617,20.153854115390455
+2025,2,COYOACAN,F,33468,37,42.4838069164162,57.5161930835838,565858223.0,10.41837491625679,20.153854115390455
+2025,2,COYOACAN,M,79692,37,42.4838069164162,57.5161930835838,565858223.0,11.285937031560982,20.153854115390455
+2025,2,COYOACAN,O,2553,37,42.4838069164162,57.5161930835838,565858223.0,7.845416036592485,20.153854115390455
+2025,2,CUAUHTEMOC,?,53798,243,53.3822374148071,46.6177625851929,338194374.0,10.893010158616534,19.639131359163244
+2025,2,CUAUHTEMOC,F,715984,243,53.3822374148071,46.6177625851929,338194374.0,13.481414496002664,19.639131359163244
+2025,2,CUAUHTEMOC,M,1738830,243,53.3822374148071,46.6177625851929,338194374.0,14.368723606325243,19.639131359163244
+2025,2,CUAUHTEMOC,O,50250,243,53.3822374148071,46.6177625851929,338194374.0,10.824785726220822,19.639131359163244
+2025,2,MIGUEL HIDALGO,?,23742,139,45.2839425141185,54.7160574858815,367067059.0,10.075043029177243,19.721055111398044
+2025,2,MIGUEL HIDALGO,F,291006,139,45.2839425141185,54.7160574858815,367067059.0,12.581102600847132,19.721055111398044
+2025,2,MIGUEL HIDALGO,M,724950,139,45.2839425141185,54.7160574858815,367067059.0,13.493859345345864,19.721055111398044
+2025,2,MIGUEL HIDALGO,O,16021,139,45.2839425141185,54.7160574858815,367067059.0,9.681718056775063,19.721055111398044
+2025,3,ALVARO OBREGON,?,1850,17,59.9714706499766,40.0285293500234,593100436.0,7.523481312573497,20.200874311929237
+2025,3,ALVARO OBREGON,F,15823,17,59.9714706499766,40.0285293500234,593100436.0,9.669283053862493,20.200874311929237
+2025,3,ALVARO OBREGON,M,43654,17,59.9714706499766,40.0285293500234,593100436.0,10.684073102244907,20.200874311929237
+2025,3,ALVARO OBREGON,O,1275,17,59.9714706499766,40.0285293500234,593100436.0,7.151485463904735,20.200874311929237
+2025,3,AZCAPOTZALCO,?,2275,28,59.6201217510589,39.4471295626623,313118142.0,7.730174795246222,19.562091127767147
+2025,3,AZCAPOTZALCO,F,26843,28,59.6201217510589,39.4471295626623,313118142.0,10.19779761127813,19.562091127767147
+2025,3,AZCAPOTZALCO,M,65517,28,59.6201217510589,39.4471295626623,313118142.0,11.090080193030527,19.562091127767147
+2025,3,AZCAPOTZALCO,O,2491,28,59.6201217510589,39.4471295626623,313118142.0,7.820840879907344,19.562091127767147
+2025,3,BENITO JUAREZ,?,26461,213,15.6386358345037,84.3613641654963,382650482.0,10.183465020602357,19.762632550856154
+2025,3,BENITO JUAREZ,F,326075,213,15.6386358345037,84.3613641654963,382650482.0,12.694885762012897,19.762632550856154
+2025,3,BENITO JUAREZ,M,784321,213,15.6386358345037,84.3613641654963,382650482.0,13.572574929298234,19.762632550856154
+2025,3,BENITO JUAREZ,O,25033,213,15.6386358345037,84.3613641654963,382650482.0,10.127990179887968,19.762632550856154
+2025,3,COYOACAN,?,2881,37,46.6501776923063,53.3498223076937,565858223.0,7.966239776559467,20.153854115390455
+2025,3,COYOACAN,F,31253,37,46.6501776923063,53.3498223076937,565858223.0,10.349902646973247,20.153854115390455
+2025,3,COYOACAN,M,75726,37,46.6501776923063,53.3498223076937,565858223.0,11.234890046903548,20.153854115390455
+2025,3,COYOACAN,O,2345,37,46.6501776923063,53.3498223076937,565858223.0,7.76046702921342,20.153854115390455
+2025,3,CUAUHTEMOC,?,61175,243,57.938135548102,42.061864451898,338194374.0,11.021510234724062,19.639131359163244
+2025,3,CUAUHTEMOC,F,664967,243,57.938135548102,42.061864451898,338194374.0,13.407494198179421,19.639131359163244
+2025,3,CUAUHTEMOC,M,1639390,243,57.938135548102,42.061864451898,338194374.0,14.309835389372651,19.639131359163244
+2025,3,CUAUHTEMOC,O,45710,243,57.938135548102,42.061864451898,338194374.0,10.730094248137464,19.639131359163244
+2025,3,MIGUEL HIDALGO,?,27610,139,51.098625436221,48.774146337407,367067059.0,10.225969523029635,19.721055111398044
+2025,3,MIGUEL HIDALGO,F,277260,139,51.098625436221,48.774146337407,367067059.0,12.532714579808795,19.721055111398044
+2025,3,MIGUEL HIDALGO,M,696077,139,51.098625436221,48.774146337407,367067059.0,13.453217002002816,19.721055111398044
+2025,3,MIGUEL HIDALGO,O,15346,139,51.098625436221,48.774146337407,367067059.0,9.638675294175094,19.721055111398044
+2025,4,ALVARO OBREGON,?,1870,17,60.9567394414894,39.0432605585106,593100436.0,7.534228326274089,20.200874311929237
+2025,4,ALVARO OBREGON,F,15926,17,60.9567394414894,39.0432605585106,593100436.0,9.675771061251782,20.200874311929237
+2025,4,ALVARO OBREGON,M,45214,17,60.9567394414894,39.0432605585106,593100436.0,10.71918416917458,20.200874311929237
+2025,4,ALVARO OBREGON,O,1358,17,60.9567394414894,39.0432605585106,593100436.0,7.214504414151143,20.200874311929237
+2025,4,AZCAPOTZALCO,?,2836,28,68.5066584248223,31.4933415751777,313118142.0,7.950502434808851,19.562091127767147
+2025,4,AZCAPOTZALCO,F,26934,28,68.5066584248223,31.4933415751777,313118142.0,10.201181835114634,19.562091127767147
+2025,4,AZCAPOTZALCO,M,66797,28,68.5066584248223,31.4933415751777,313118142.0,11.109428418956762,19.562091127767147
+2025,4,AZCAPOTZALCO,O,2347,28,68.5066584248223,31.4933415751777,313118142.0,7.761319180947987,19.562091127767147
+2025,4,BENITO JUAREZ,?,29818,213,14.8093646826421,84.1149352098129,382650482.0,10.302901053215857,19.762632550856154
+2025,4,BENITO JUAREZ,F,313925,213,14.8093646826421,84.1149352098129,382650482.0,12.656912568326328,19.762632550856154
+2025,4,BENITO JUAREZ,M,764194,213,14.8093646826421,84.1149352098129,382650482.0,13.546578271183687,19.762632550856154
+2025,4,BENITO JUAREZ,O,23489,213,14.8093646826421,84.1149352098129,382650482.0,10.064330077652958,19.762632550856154
+2025,4,COYOACAN,?,3642,37,47.1770539578515,49.2694340333911,565858223.0,8.200562797008564,20.153854115390455
+2025,4,COYOACAN,F,31404,37,47.1770539578515,49.2694340333911,565858223.0,10.354722394888482,20.153854115390455
+2025,4,COYOACAN,M,77746,37,47.1770539578515,49.2694340333911,565858223.0,11.26121524408805,20.153854115390455
+2025,4,COYOACAN,O,2763,37,47.1770539578515,49.2694340333911,565858223.0,7.92443418488756,20.153854115390455
+2025,4,CUAUHTEMOC,?,74740,243,59.1470478385,40.8529521615,338194374.0,11.221784082666318,19.639131359163244
+2025,4,CUAUHTEMOC,F,659827,243,59.1470478385,40.8529521615,338194374.0,13.399734473978341,19.639131359163244
+2025,4,CUAUHTEMOC,M,1597706,243,59.1470478385,40.8529521615,338194374.0,14.28408003430418,19.639131359163244
+2025,4,CUAUHTEMOC,O,43557,243,59.1470478385,40.8529521615,338194374.0,10.681848662310554,19.639131359163244
+2025,4,MIGUEL HIDALGO,?,33783,139,35.7320824613838,64.2679175386162,367067059.0,10.42774259661378,19.721055111398044
+2025,4,MIGUEL HIDALGO,F,275325,139,35.7320824613838,64.2679175386162,367067059.0,12.525711129097738,19.721055111398044
+2025,4,MIGUEL HIDALGO,M,689485,139,35.7320824613838,64.2679175386162,367067059.0,13.443701671440826,19.721055111398044
+2025,4,MIGUEL HIDALGO,O,15421,139,35.7320824613838,64.2679175386162,367067059.0,9.643550340392906,19.721055111398044
+2026,1,ALVARO OBREGON,?,1868,17,62.0906012228205,37.9093987771795,,7.533158807455563,
+2026,1,ALVARO OBREGON,F,14965,17,62.0906012228205,37.9093987771795,,9.613536240640304,
+2026,1,ALVARO OBREGON,M,44868,17,62.0906012228205,37.9093987771795,,10.711502412115928,
+2026,1,ALVARO OBREGON,O,1269,17,62.0906012228205,37.9093987771795,,7.146772179452637,
+2026,1,AZCAPOTZALCO,?,2710,28,59.2635415903311,40.7364584096689,,7.905072849498666,
+2026,1,AZCAPOTZALCO,F,26510,28,59.2635415903311,40.7364584096689,,10.185315020186113,
+2026,1,AZCAPOTZALCO,M,66855,28,59.2635415903311,40.7364584096689,,11.110296331681273,
+2026,1,AZCAPOTZALCO,O,2197,28,59.2635415903311,40.7364584096689,,7.6953031349635665,
+2026,1,BENITO JUAREZ,?,33941,213,16.4263384858707,83.5736615141293,,10.43240846457121,
+2026,1,BENITO JUAREZ,F,317287,213,16.4263384858707,83.5736615141293,,12.667565157757481,
+2026,1,BENITO JUAREZ,M,758931,213,16.4263384858707,83.5736615141293,,13.53966746079635,
+2026,1,BENITO JUAREZ,O,23147,213,16.4263384858707,83.5736615141293,,10.04966366269373,
+2026,1,COYOACAN,?,3688,37,44.5903120300547,55.4096879699453,,8.213110697596676,
+2026,1,COYOACAN,F,31911,37,44.5903120300547,55.4096879699453,,10.370737393585243,
+2026,1,COYOACAN,M,77311,37,44.5903120300547,55.4096879699453,,11.255604461854432,
+2026,1,COYOACAN,O,2847,37,44.5903120300547,55.4096879699453,,7.954372272531867,
+2026,1,CUAUHTEMOC,?,80101,243,53.2464854732896,46.2268041237113,,11.29105610153375,
+2026,1,CUAUHTEMOC,F,632948,243,53.2464854732896,46.2268041237113,,13.3581451291601,
+2026,1,CUAUHTEMOC,M,1529211,243,53.2464854732896,46.2268041237113,,14.240263128013993,
+2026,1,CUAUHTEMOC,O,40439,243,53.2464854732896,46.2268041237113,,10.607574673134408,
+2026,1,MIGUEL HIDALGO,?,38474,139,35.9583360261962,64.0416639738038,,10.55776395870708,
+2026,1,MIGUEL HIDALGO,F,278497,139,35.9583360261962,64.0416639738038,,12.537166156995145,
+2026,1,MIGUEL HIDALGO,M,682281,139,35.9583360261962,64.0416639738038,,13.433198341098347,
+2026,1,MIGUEL HIDALGO,O,14987,139,35.9583360261962,64.0416639738038,,9.615005159913578,
+</script>
+
+<script>
+/* ==================================================================
+   Motor estadístico: MCO con efectos fijos y errores agrupados (CR1)
+   ================================================================== */
+const Stats = (() => {
+  function invert(A){
+    const n=A.length, M=A.map((r,i)=>{const e=new Array(n).fill(0);e[i]=1;return r.slice().concat(e);});
+    for(let c=0;c<n;c++){
+      let p=c; for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r;
+      if(Math.abs(M[p][c])<1e-10) throw new Error("Matriz singular: hay variables colineales.");
+      [M[c],M[p]]=[M[p],M[c]];
+      const d=M[c][c]; for(let j=0;j<2*n;j++) M[c][j]/=d;
+      for(let r=0;r<n;r++) if(r!==c){const f=M[r][c]; if(f) for(let j=0;j<2*n;j++) M[r][j]-=f*M[c][j];}
+    }
+    return M.map(r=>r.slice(n));
+  }
+  function lgamma(x){
+    const g=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+    let y=x,t=x+5.5; t-=(x+0.5)*Math.log(t); let s=1.000000000190015;
+    for(const c of g) s+=c/++y; return -t+Math.log(2.5066282746310005*s/x);
+  }
+  function betacf(a,b,x){
+    const MAXIT=200,EPS=3e-14,FPMIN=1e-300; let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;
+    if(Math.abs(d)<FPMIN)d=FPMIN; d=1/d; let h=d;
+    for(let m=1;m<=MAXIT;m++){
+      const m2=2*m; let aa=m*(b-m)*x/((qam+m2)*(a+m2));
+      d=1+aa*d; if(Math.abs(d)<FPMIN)d=FPMIN; c=1+aa/c; if(Math.abs(c)<FPMIN)c=FPMIN; d=1/d; h*=d*c;
+      aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+      d=1+aa*d; if(Math.abs(d)<FPMIN)d=FPMIN; c=1+aa/c; if(Math.abs(c)<FPMIN)c=FPMIN; d=1/d;
+      const del=d*c; h*=del; if(Math.abs(del-1)<EPS) break;
+    }
+    return h;
+  }
+  function betai(a,b,x){
+    if(x<=0) return 0; if(x>=1) return 1;
+    const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));
+    return x<(a+1)/(a+b+2) ? bt*betacf(a,b,x)/a : 1-bt*betacf(b,a,1-x)/b;
+  }
+  const pTwo=(t,df)=>betai(df/2,0.5,df/(df+t*t));          // P(|T|>|t|)
+  const pLower=(t,df)=>t<0? pTwo(t,df)/2 : 1-pTwo(t,df)/2;  // P(T<t)
+  function tCrit(df,alpha=0.05){let lo=0,hi=100;for(let i=0;i<100;i++){const m=(lo+hi)/2; pTwo(m,df)>alpha?lo=m:hi=m;}return (lo+hi)/2;}
+
+  // data: array de objetos; y: clave; xs: claves; fes: claves de efectos fijos; cl: clave de grupo
+  function ols(data,y,xs,fes,cl){
+    const rows=data.filter(r=>[y,...xs].every(k=>Number.isFinite(r[k])));
+    const lev=fes.map(f=>[...new Set(rows.map(r=>r[f]))].sort());
+    const X=rows.map(r=>{
+      const v=[1,...xs.map(k=>r[k])];
+      fes.forEach((f,j)=>lev[j].slice(1).forEach(l=>v.push(r[f]===l?1:0)));
+      return v;
+    });
+    const Y=rows.map(r=>r[y]), N=X.length, K=X[0].length;
+    const XtX=Array.from({length:K},()=>new Array(K).fill(0)), Xty=new Array(K).fill(0);
+    for(let n=0;n<N;n++){const x=X[n];for(let i=0;i<K;i++){Xty[i]+=x[i]*Y[n];for(let j=i;j<K;j++)XtX[i][j]+=x[i]*x[j];}}
+    for(let i=0;i<K;i++)for(let j=0;j<i;j++)XtX[i][j]=XtX[j][i];
+    const inv=invert(XtX), b=inv.map(r=>r.reduce((s,v,j)=>s+v*Xty[j],0));
+    const fit=X.map(x=>x.reduce((s,v,j)=>s+v*b[j],0)), e=Y.map((v,n)=>v-fit[n]);
+    const groups=[...new Set(rows.map(r=>r[cl]))], G=groups.length;
+    const meat=Array.from({length:K},()=>new Array(K).fill(0));
+    for(const g of groups){
+      const s=new Array(K).fill(0);
+      rows.forEach((r,n)=>{if(r[cl]===g)for(let i=0;i<K;i++)s[i]+=X[n][i]*e[n];});
+      for(let i=0;i<K;i++)for(let j=0;j<K;j++)meat[i][j]+=s[i]*s[j];
+    }
+    const adj=G/(G-1)*(N-1)/(N-K);
+    const tmp=inv.map(r=>meat[0].map((_,j)=>r.reduce((s,v,k)=>s+v*meat[k][j],0)));
+    const V=tmp.map(r=>inv[0].map((_,j)=>r.reduce((s,v,k)=>s+v*inv[k][j],0)*adj));
+    const df=G-1, q=tCrit(df);
+    const coefs=xs.map((k,i)=>{
+      const est=b[i+1], se=Math.sqrt(V[i+1][i+1]), t=est/se;
+      return {name:k,est,se,t,p:pTwo(t,df),pLow:pLower(t,df),lo:est-q*se,hi:est+q*se};
+    });
+    return {coefs,N,K,G,df,rows,fit,y:Y,nT:lev[fes.indexOf("per")]?.length};
+  }
+  return {ols,pTwo,tCrit};
+})();
+</script>
+
+<script>
+/* ==================================================================
+   Datos y tablero
+   ================================================================== */
+const RUTA_CSV = "artefactos/panel_ecobici.csv";
+
+const ALC = {
+  "CUAUHTEMOC":     {n:"Cuauhtémoc",     c:"#1D7F55", ll:[19.4330,-99.1515]},
+  "MIGUEL HIDALGO": {n:"Miguel Hidalgo", c:"#2F6DB5", ll:[19.4275,-99.2000]},
+  "BENITO JUAREZ":  {n:"Benito Juárez",  c:"#8456BE", ll:[19.3805,-99.1610]},
+  "COYOACAN":       {n:"Coyoacán",       c:"#D57A1E", ll:[19.3300,-99.1585]},
+  "ALVARO OBREGON": {n:"Álvaro Obregón", c:"#C23B5A", ll:[19.3590,-99.2270]},
+  "AZCAPOTZALCO":   {n:"Azcapotzalco",   c:"#2C9C9C", ll:[19.4860,-99.1860]},
+};
+const GEN = {F:"Mujeres", M:"Hombres", O:"Otro", "?":"Sin registro"};
+const GRP = {T:"Total", F:"Mujeres", M:"Hombres"};
+const fmt = new Intl.NumberFormat("es-MX");
+const fmtC = new Intl.NumberFormat("es-MX",{notation:"compact",maximumFractionDigits:1});
+const f = (x,d=4)=>Number.isFinite(x)? x.toLocaleString("es-MX",{minimumFractionDigits:d,maximumFractionDigits:d}).replace("-","−") : "—";
+const pct = (x,d=1)=>Number.isFinite(x)? x.toLocaleString("es-MX",{minimumFractionDigits:d,maximumFractionDigits:d})+" %" : "—";
+const css = v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const $ = s=>document.querySelector(s);
+
+let RAW=[], PERIODS=[], MAPP=[], PER_LABEL={}, STATE={g1:"T",g4:"raw",mVar:"ins",mT:0,grp:"T",spec:"1"};
+
+function parseCSV(txt){
+  const lines=txt.replace(/^\uFEFF/,"").trim().split(/\r?\n/);
+  const h=lines.shift().split(",").map(s=>s.trim());
+  return lines.filter(Boolean).map(l=>{
+    const v=l.split(","), o={};
+    h.forEach((k,i)=>{const s=(v[i]??"").trim(); const num=Number(s);
+      o[k]= (s!=="" && Number.isFinite(num) && !["alcaldia_norm","genero"].includes(k)) ? num : (s===""? null : s);});
+    return o;
+  });
+}
+const perKey=(a,t)=>`${a}T${t}`;
+
+// Construye observaciones alcaldía × trimestre para un grupo
+function obs(g){
+  const m=new Map();
+  for(const r of RAW){
+    if(g!=="T" && r.genero!==g) continue;
+    const k=r.alcaldia_norm+"|"+perKey(r.anio,r.trimestre);
+    if(!m.has(k)) m.set(k,{alc:r.alcaldia_norm,anio:r.anio,tri:r.trimestre,per:perKey(r.anio,r.trimestre),
+      n:0,ins:r.inseguro_pct,seg:r.seguro_pct,est:r.estaciones_activas,
+      linv: Number.isFinite(r.log_inversion)? r.log_inversion : NaN, inv:r.inversion_publica});
+    m.get(k).n+=r.n_viajes;
+  }
+  return [...m.values()].map(o=>({...o,y:Math.log1p(o.n)}));
+}
+const CACHE={}; const OBS=g=>CACHE[g]??=obs(g);
+
+/* ---------- Plotly: estilo común ---------- */
+function lay(o={}){
+  const ax={gridcolor:css("--grid"),linecolor:css("--line"),zeroline:false,tickfont:{size:11.5},title:{font:{size:12.5}},automargin:true};
+  const base={paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",separators:".,",
+    font:{family:"Archivo, Helvetica Neue, Arial, sans-serif",color:css("--ink"),size:12.5},
+    margin:{l:58,r:14,t:10,b:46},hoverlabel:{font:{family:"Archivo, sans-serif",size:12.5},bgcolor:css("--surface"),bordercolor:css("--line")},
+    legend:{orientation:"h",y:-0.18,x:0,font:{size:12}}, xaxis:{...ax}, yaxis:{...ax}};
+  for(const k in o){ base[k]= (k.startsWith("xaxis")||k.startsWith("yaxis")) ? {...ax,...o[k],title:{font:{size:12.5},...(o[k].title||{})}} : o[k]; }
+  return base;
+}
+const CFG={responsive:true,displaylogo:false,modeBarButtonsToRemove:["lasso2d","select2d","autoScale2d","toggleSpikelines"],toImageButtonOptions:{format:"png",scale:2}};
+const plot=(id,data,layout)=>Plotly.react(id,data,lay(layout),CFG);
+
+/* ---------- Ficha resumen ---------- */
+function renderFacts(){
+  const T=OBS("T"), total=T.reduce((s,o)=>s+o.n,0);
+  const first=PER_LABEL[PERIODS[0]], last=PER_LABEL[PERIODS[PERIODS.length-1]];
+  const items=[
+    [fmt.format(T.length),"observaciones alcaldía × trimestre"],
+    ["6","alcaldías con ECOBICI"],
+    [String(new Set(T.map(o=>o.per)).size),`trimestres, de ${first} a ${last}`],
+    [fmtC.format(total),"viajes en el periodo"],
+    [`${Math.min(...T.map(o=>o.ins)).toFixed(0)}–${Math.max(...T.map(o=>o.ins)).toFixed(0)} %`,"rango de percepción de inseguridad"],
+  ];
+  $("#facts").innerHTML=items.map(([a,b])=>`<div class="fact"><strong>${a}</strong><span>${b}</span></div>`).join("");
+}
+
+/* ---------- Gráfica 1: viajes ---------- */
+function seriesBy(g,val){
+  const D=OBS(g);
+  return Object.keys(ALC).map(a=>{
+    const m=new Map(D.filter(o=>o.alc===a).map(o=>[o.per,o]));
+    return {a, x:PERIODS.map(p=>PER_LABEL[p]), y:PERIODS.map(p=>m.has(p)? val(m.get(p)) : null)};
+  });
+}
+function renderG1(){
+  const S=seriesBy(STATE.g1,o=>o.n);
+  plot("g1",S.map(s=>({x:s.x,y:s.y,name:ALC[s.a].n,type:"scatter",mode:"lines+markers",line:{color:ALC[s.a].c,width:2.4},marker:{size:5},
+    connectgaps:false,hovertemplate:`<b>${ALC[s.a].n}</b><br>%{x}: %{y:,.0f} viajes<extra></extra>`})),
+    {yaxis:{title:{text:`Viajes (${GRP[STATE.g1].toLowerCase()})`},tickformat:"~s"},xaxis:{type:"category",tickangle:-45,nticks:13},hovermode:"x unified"});
+}
+/* ---------- Gráfica 2: inseguridad ---------- */
+function renderG2(){
+  const S=seriesBy("T",o=>o.ins);
+  plot("g2",S.map(s=>({x:s.x,y:s.y,name:ALC[s.a].n,type:"scatter",mode:"lines+markers",line:{color:ALC[s.a].c,width:2.2},marker:{size:4},
+    hovertemplate:`<b>${ALC[s.a].n}</b><br>%{x}: %{y:.1f} %<extra></extra>`})),
+    {yaxis:{title:{text:"% que se siente inseguro"},range:[0,85],ticksuffix:" %"},xaxis:{type:"category",tickangle:-45,nticks:9},showlegend:false,hovermode:"x unified",margin:{l:58,r:14,t:10,b:60}});
+}
+/* ---------- Gráfica 3: cobertura ---------- */
+function renderG3(){
+  const D=OBS("T"), keys=Object.keys(ALC).reverse();
+  const z=keys.map(a=>PERIODS.map(p=>{const o=D.find(d=>d.alc===a&&d.per===p);return o?Math.log10(o.n):null;}));
+  const txt=keys.map(a=>PERIODS.map(p=>{const o=D.find(d=>d.alc===a&&d.per===p);return o?`${fmt.format(o.n)} viajes`:"sin dato";}));
+  const dark=matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme!=="light";
+  plot("g3",[{type:"heatmap",x:PERIODS.map(p=>PER_LABEL[p]),y:keys.map(a=>ALC[a].n),z,text:txt,xgap:2,ygap:2,
+    colorscale:dark?[[0,"#1d3b2f"],[1,"#7fe0ad"]]:[[0,"#d6eee1"],[1,"#0f5a3a"]],
+    colorbar:{title:{text:"viajes",side:"right"},tickvals:[2,3,4,5,6],ticktext:["100","1 mil","10 mil","100 mil","1 M"],thickness:10,len:.9,outlinewidth:0},
+    hovertemplate:"<b>%{y}</b>, %{x}<br>%{text}<extra></extra>"}],
+    {xaxis:{type:"category",tickangle:-45,nticks:9,showgrid:false},yaxis:{showgrid:false},margin:{l:110,r:10,t:10,b:60}});
+}
+/* ---------- Gráfica 4: dispersión entre / dentro ---------- */
+function linfit(x,y){const n=x.length,mx=x.reduce((a,b)=>a+b)/n,my=y.reduce((a,b)=>a+b)/n;
+  let sxy=0,sxx=0;for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2;}const b=sxy/sxx;return {a:my-b*mx,b};}
+function renderG4(){
+  const D=OBS("T"), within=STATE.g4==="within";
+  const mean={}; for(const a in ALC){const s=D.filter(o=>o.alc===a); if(s.length) mean[a]={x:s.reduce((t,o)=>t+o.ins,0)/s.length,y:s.reduce((t,o)=>t+o.y,0)/s.length};}
+  const P=D.map(o=>({a:o.alc,per:o.per,x:within?o.ins-mean[o.alc].x:o.ins,y:within?o.y-mean[o.alc].y:o.y}));
+  const fit=linfit(P.map(p=>p.x),P.map(p=>p.y)), xs=[Math.min(...P.map(p=>p.x)),Math.max(...P.map(p=>p.x))];
+  const traces=Object.keys(ALC).map(a=>{const s=P.filter(p=>p.a===a);return {x:s.map(p=>p.x),y:s.map(p=>p.y),text:s.map(p=>PER_LABEL[p.per]),
+    name:ALC[a].n,type:"scatter",mode:"markers",marker:{color:ALC[a].c,size:9,opacity:.85,line:{width:1,color:css("--surface")}},
+    hovertemplate:`<b>${ALC[a].n}</b>, %{text}<br>${within?"Desviación en inseguridad":"Inseguridad"}: %{x:.1f}${within?" pp":" %"}<br>${within?"Desviación en log viajes":"log(1+viajes)"}: %{y:.2f}<extra></extra>`};});
+  traces.push({x:xs,y:xs.map(x=>fit.a+fit.b*x),type:"scatter",mode:"lines",name:"Recta de MCO simple",line:{color:css("--ink"),width:2,dash:"dash"},hoverinfo:"skip"});
+  $("#g4-cap").innerHTML= within
+    ? `Cada alcaldía se compara con su propio promedio, como lo hace el efecto fijo. La pendiente simple es <b>${f(fit.b,3)}</b>: casi plana una vez que se quitan las diferencias permanentes.`
+    : `Comparación directa entre alcaldías. La pendiente simple es <b>${f(fit.b,3)}</b>, pero mezcla diferencias permanentes entre alcaldías (tamaño de red, centralidad) con el efecto de la inseguridad.`;
+  plot("g4",traces,{xaxis:{title:{text:within?"Inseguridad respecto al promedio de la alcaldía (pp)":"% que se siente inseguro"},zeroline:within,zerolinecolor:css("--line")},
+    yaxis:{title:{text:within?"log viajes respecto al promedio":"log(1 + viajes totales)"},zeroline:within,zerolinecolor:css("--line")},legend:{orientation:"h",y:-0.22,x:0}});
+}
+/* ---------- Gráfica 5: género ---------- */
+function renderG5(){
+  const years=[...new Set(RAW.map(r=>r.anio))].sort();
+  const tot=Object.fromEntries(years.map(y=>[y,RAW.filter(r=>r.anio===y).reduce((s,r)=>s+r.n_viajes,0)]));
+  const col={F:"#C23B5A",M:"#2F6DB5",O:css("--muted"),"?":css("--line")};
+  const traces=["F","M","O","?"].map(g=>({type:"bar",name:GEN[g],x:years.map(String),
+    y:years.map(y=>100*RAW.filter(r=>r.anio===y&&r.genero===g).reduce((s,r)=>s+r.n_viajes,0)/tot[y]),
+    marker:{color:col[g]},hovertemplate:`<b>${GEN[g]}</b>, %{x}: %{y:.1f} %<extra></extra>`}));
+  plot("g5",traces,{barmode:"stack",yaxis:{title:{text:"% de los viajes del año"},range:[0,100],ticksuffix:" %"},xaxis:{type:"category"},bargap:.28,legend:{orientation:"h",y:-0.15,x:0}});
+}
+
+/* ---------- Mapa ---------- */
+let MAP, TILE, LAYER, GEO=null, GEOLAYER=null, MARK={}, PLAY=null;
+const RAMPS={
+  ins:{stops:["#FCEFC7","#F3B743","#DD6A2C","#A82430","#5E0F22"],dom:[10,80],lbl:"% que se siente inseguro",unit:"%"},
+  seg:{stops:["#E6F3EA","#9ED3B1","#4BAA77","#1D7F55","#0B4A31"],dom:[20,90],lbl:"% que se siente seguro",unit:"%"},
+  via:{stops:["#E4EEF8","#9FC2E6","#4C8BCB","#1F5C9E","#0E325F"],dom:[3,6.4],lbl:"viajes del trimestre (escala logarítmica)",unit:"log"},
+};
+function lerp(a,b,t){return Math.round(a+(b-a)*t);}
+function hex(h){return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));}
+function colorAt(stops,t){t=Math.max(0,Math.min(1,t));const s=t*(stops.length-1),i=Math.min(Math.floor(s),stops.length-2),u=s-i;
+  const a=hex(stops[i]),b=hex(stops[i+1]);return `rgb(${lerp(a[0],b[0],u)},${lerp(a[1],b[1],u)},${lerp(a[2],b[2],u)})`;}
+function mapVal(o,v){return v==="ins"?o.ins:v==="seg"?o.seg:Math.log10(o.n);}
+function norm(s){return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();}
+
+function tilesURL(){const dark=getComputedStyle(document.documentElement).colorScheme.includes("dark");
+  return `https://{s}.basemaps.cartocdn.com/${dark?"dark_all":"light_all"}/{z}/{x}/{y}{r}.png`;}
+function initMap(){
+  MAP=L.map("mapa",{zoomControl:true,scrollWheelZoom:false,attributionControl:true}).setView([19.405,-99.18],12);
+  TILE=L.tileLayer(tilesURL(),{subdomains:"abcd",maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>'}).addTo(MAP);
+  MAP.on("focus",()=>MAP.scrollWheelZoom.enable()); MAP.on("blur",()=>MAP.scrollWheelZoom.disable());
+  LAYER=L.layerGroup().addTo(MAP);
+  const sl=$("#map-t"); sl.max=MAPP.length-1; sl.value=STATE.mT=MAPP.length-1;
+  sl.addEventListener("input",e=>{STATE.mT=+e.target.value;renderMap();});
+  $("#map-play").addEventListener("click",togglePlay);
+  // Polígonos opcionales: coloca artefactos/alcaldias.geojson (límites de alcaldías, datos abiertos CDMX)
+  fetch("artefactos/alcaldias.geojson").then(r=>r.ok?r.json():null).then(g=>{if(g){GEO=g;renderMap();}}).catch(()=>{});
+}
+function togglePlay(){
+  const b=$("#map-play");
+  if(PLAY){clearInterval(PLAY);PLAY=null;b.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>';b.setAttribute("aria-label","Reproducir la evolución trimestral");return;}
+  if(STATE.mT>=MAPP.length-1) STATE.mT=-1;
+  b.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>';b.setAttribute("aria-label","Pausar");
+  PLAY=setInterval(()=>{STATE.mT++; if(STATE.mT>MAPP.length-1){STATE.mT=MAPP.length-1;togglePlay();return;} $("#map-t").value=STATE.mT; renderMap();},900);
+}
+function renderMap(){
+  if(!MAP) return;
+  const v=STATE.mVar, R=RAMPS[v], per=MAPP[STATE.mT], D=OBS("T").filter(o=>o.per===per);
+  const byA=Object.fromEntries(D.map(o=>[o.alc,o]));
+  const tOf=o=>(mapVal(o,v)-R.dom[0])/(R.dom[1]-R.dom[0]);
+  $("#map-period").textContent=PER_LABEL[per];
+  LAYER.clearLayers(); MARK={};
+  if(GEO){
+    if(GEOLAYER) MAP.removeLayer(GEOLAYER);
+    GEOLAYER=L.geoJSON(GEO,{style:ft=>{
+      const key=Object.values(ft.properties||{}).map(norm).find(s=>ALC[s]); const o=key&&byA[key];
+      return o?{color:css("--ink"),weight:1.2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.55}:{color:css("--muted"),weight:.6,fillOpacity:0,dashArray:"3 3"};
+    },interactive:false}).addTo(MAP); GEOLAYER.bringToBack();
+  }
+  const maxN=Math.max(...OBS("T").map(o=>o.n));
+  for(const a in ALC){
+    const o=byA[a], info=ALC[a];
+    if(!o){
+      MARK[a]=L.circleMarker(info.ll,{radius:7,color:css("--muted"),weight:1.5,dashArray:"3 3",fillOpacity:0})
+        .bindPopup(`<div class="pop"><h4>${info.n}</h4>Sin observación en ${PER_LABEL[per]}.</div>`).bindTooltip(info.n).addTo(LAYER);
+      continue;
+    }
+    const r=8+34*Math.sqrt(o.n/maxN);
+    MARK[a]=L.circleMarker(info.ll,{radius:r,color:"#ffffff",weight:2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.88})
+      .bindTooltip(`${info.n}: ${v==="via"?fmt.format(o.n)+" viajes":pct(v==="ins"?o.ins:o.seg)}`,{direction:"top",offset:[0,-r]})
+      .bindPopup(`<div class="pop"><h4>${info.n}, ${PER_LABEL[per]}</h4><dl>
+        <dt>Se siente insegura</dt><dd>${pct(o.ins)}</dd><dt>Se siente segura</dt><dd>${pct(o.seg)}</dd>
+        <dt>Viajes</dt><dd>${fmt.format(o.n)}</dd><dt>Estaciones activas</dt><dd>${fmt.format(o.est)}</dd>
+        <dt>Inversión pública</dt><dd>${Number.isFinite(o.inv)?fmtC.format(o.inv)+" MXN":"sin dato"}</dd></dl></div>`).addTo(LAYER);
+  }
+  // Leyenda
+  const ends=v==="via"?["1 mil","2.5 M"]:[R.dom[0]+" %",R.dom[1]+" %"];
+  $("#map-legend").innerHTML=`<div>Color: ${R.lbl}</div><div class="ramp" style="background:linear-gradient(90deg,${R.stops.join(",")})"></div>
+    <div class="ends"><span>${ends[0]}</span><span>${ends[1]}</span></div><div style="margin-top:6px">Tamaño: viajes del trimestre</div>`;
+  // Ranking
+  const list=Object.keys(ALC).map(a=>({a,o:byA[a]})).sort((p,q)=>(q.o?mapVal(q.o,v):-1e9)-(p.o?mapVal(p.o,v):-1e9));
+  $("#map-rank").innerHTML=list.map(({a,o})=>{
+    const val=o?(v==="via"?fmtC.format(o.n):pct(v==="ins"?o.ins:o.seg)):"sin dato";
+    const w=o?Math.max(4,100*tOf(o)):0, c=o?colorAt(R.stops,tOf(o)):"transparent";
+    return `<li class="${o?"":"na"}"><button type="button" data-a="${a}"><span class="nm">${ALC[a].n}</span><span class="vl">${val}</span><span class="bar"><i style="width:${w}%;background:${c}"></i></span></button></li>`;
+  }).join("");
+  $("#map-rank").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.a;MAP.flyTo(ALC[a].ll,13,{duration:.6});MARK[a]?.openPopup();}));
+  $("#map-note").textContent=GEO?"Polígonos: límites de alcaldías cargados desde artefactos/alcaldias.geojson.":"Para dibujar los límites de cada alcaldía, agrega el archivo artefactos/alcaldias.geojson al repositorio.";
+}
+
+/* ---------- Modelo ---------- */
+const XS={1:["ins","est"],2:["ins","est","linv"]};
+const LBL={ins:"% inseguro (β₁)",est:"Estaciones activas (γ)",linv:"log inversión pública",insF:"inseguro × mujer",fem:"mujer"};
+function fitModel(g,spec,drop){
+  let D=OBS(g); if(drop) D=D.filter(o=>o.alc!==drop);
+  return Stats.ols(D,"y",XS[spec],["alc","per"],"alc");
+}
+function renderModel(){
+  const g=STATE.grp, s=STATE.spec, res=fitModel(g,s), b=res.coefs[0];
+  $("#eq-inv").innerHTML = s==="2" ? " + θ·log(<i>inversión</i><sub><i>it</i></sub>)" : "";
+  const eff=(Math.exp(b.est)-1)*100, effLo=(Math.exp(b.lo)-1)*100, effHi=(Math.exp(b.hi)-1)*100;
+  const covers=b.lo<0&&b.hi>0;
+  $("#m-beta").textContent=`β₁ = ${f(b.est)}`;
+  $("#m-ci").textContent=`IC 95 %: [${f(b.lo)}, ${f(b.hi)}] | EE agrupado: ${f(b.se)}`;
+  $("#m-verdict").innerHTML=`Un punto porcentual más de población que se siente insegura se asocia con un cambio de <b>${f(eff,2)} %</b> en los viajes ${g==="T"?"totales":"de "+GRP[g].toLowerCase()} (IC: ${f(effLo,1)} % a ${f(effHi,1)} %). `+
+    (covers?`El intervalo incluye el cero, así que no se rechaza H₀ al 5 %. `:`El intervalo excluye el cero. `)+
+    (b.est>0?`Además, el signo es positivo, contrario al esperado.`:`El signo es negativo, como se esperaba.`)+
+    ` La prueba unilateral (H₁: β₁ &lt; 0) tiene p = ${f(b.pLow,3)}.`;
+  const tag=$("#m-tag"); tag.textContent=covers?`No se detecta efecto (p bilateral = ${f(b.p,3)})`:`Efecto distinguible de cero (p = ${f(b.p,3)})`; tag.className="tag"+(covers?"":" ok");
+  $("#m-table").innerHTML=`<thead><tr><th>Variable</th><th>Coef.</th><th>EE</th><th>t</th><th>p</th><th>IC 95 %</th></tr></thead><tbody>`+
+    res.coefs.map((c,i)=>`<tr class="${i===0?"key":""}"><td>${LBL[c.name]}</td><td>${f(c.est,c.name==="ins"?4:3)}</td><td>${f(c.se,c.name==="ins"?4:3)}</td><td>${f(c.t,2)}</td><td>${f(c.p,3)}</td><td>[${f(c.lo,3)}, ${f(c.hi,3)}]</td></tr>`).join("")+`</tbody>`;
+  $("#m-meta").innerHTML=`<span>N = ${res.N}</span><span>Grupos (alcaldías) = ${res.G}</span><span>Trimestres = ${res.nT}</span><span>Efectos fijos de alcaldía y trimestre</span><span>t con ${res.df} gl, CR1</span>`;
+
+  // M1: todas las especificaciones
+  const specs=[]; for(const ss of ["1","2"]) for(const gg of ["T","F","M"]){const r=fitModel(gg,ss).coefs[0];specs.push({lbl:`${GRP[gg]}, ej. ${ss}`,r,sel:gg===g&&ss===s});}
+  specs.reverse();
+  plot("m1",[{type:"scatter",mode:"markers",x:specs.map(o=>o.r.est),y:specs.map(o=>o.lbl),
+    error_x:{type:"data",symmetric:false,array:specs.map(o=>o.r.hi-o.r.est),arrayminus:specs.map(o=>o.r.est-o.r.lo),color:css("--muted"),thickness:2,width:0},
+    marker:{size:specs.map(o=>o.sel?14:9),color:specs.map(o=>o.sel?css("--lane"):css("--ink")),symbol:specs.map(o=>o.sel?"diamond":"circle")},
+    customdata:specs.map(o=>[o.r.lo,o.r.hi,o.r.p]),hovertemplate:"<b>%{y}</b><br>β₁ = %{x:.4f}<br>IC: [%{customdata[0]:.4f}, %{customdata[1]:.4f}]<br>p = %{customdata[2]:.3f}<extra></extra>"}],
+    {xaxis:{title:{text:"β₁ (cambio en log viajes por punto porcentual)"},zeroline:false},yaxis:{type:"category",showgrid:false},showlegend:false,margin:{l:130,r:14,t:10,b:50},
+     shapes:[{type:"line",x0:0,x1:0,yref:"paper",y0:0,y1:1,line:{color:css("--alert"),dash:"dot",width:1.5}}]});
+
+  // M2: quitar una alcaldía
+  const loo=Object.keys(ALC).map(a=>{try{return {a,r:fitModel(g,s,a).coefs[0]};}catch(e){return null;}}).filter(Boolean).reverse();
+  plot("m2",[{type:"scatter",mode:"markers",x:loo.map(o=>o.r.est),y:loo.map(o=>"Sin "+ALC[o.a].n),
+    error_x:{type:"data",symmetric:false,array:loo.map(o=>o.r.hi-o.r.est),arrayminus:loo.map(o=>o.r.est-o.r.lo),color:css("--muted"),thickness:2,width:0},
+    marker:{size:10,color:loo.map(o=>ALC[o.a].c)},customdata:loo.map(o=>[o.r.lo,o.r.hi,o.r.p]),
+    hovertemplate:"<b>%{y}</b><br>β₁ = %{x:.4f}<br>IC: [%{customdata[0]:.4f}, %{customdata[1]:.4f}]<br>p = %{customdata[2]:.3f} (t con 4 gl)<extra></extra>"}],
+    {xaxis:{title:{text:"β₁ sin la alcaldía indicada"},zeroline:false},yaxis:{type:"category",showgrid:false},showlegend:false,margin:{l:150,r:14,t:10,b:50},
+     shapes:[{type:"line",x0:0,x1:0,yref:"paper",y0:0,y1:1,line:{color:css("--alert"),dash:"dot",width:1.5}},
+             {type:"line",x0:b.est,x1:b.est,yref:"paper",y0:0,y1:1,line:{color:css("--lane"),width:2}}]});
+
+  // Diferencia mujeres − hombres
+  const FM=[...OBS("F").map(o=>({...o,fem:1})),...OBS("M").map(o=>({...o,fem:0}))].map(o=>({...o,insF:o.ins*o.fem}));
+  const xsI=s==="2"?["ins","insF","fem","est","linv"]:["ins","insF","fem","est"];
+  const ri=Stats.ols(FM,"y",xsI,["alc","per"],"alc"), d=ri.coefs[1], base=ri.coefs[0];
+  $("#m-diff").innerHTML=`<div class="beta" style="font-size:clamp(1.9rem,3.6vw,2.6rem)">δ = ${f(d.est)}</div>
+    <p class="ci">IC 95 %: [${f(d.lo)}, ${f(d.hi)}] | p = ${f(d.p,3)} | N = ${ri.N}</p>
+    <p class="verdict">δ es cuánto difiere la respuesta de los viajes de mujeres frente a la de hombres ante un punto porcentual más de inseguridad. La pendiente de hombres es ${f(base.est)} y la de mujeres, ${f(base.est+d.est)}. ${d.lo<0&&d.hi>0?"El intervalo incluye el cero: no hay evidencia de que mujeres y hombres respondan distinto.":"El intervalo excluye el cero: la respuesta difiere por género."}</p>`;
+
+  // M3: observado vs ajustado
+  const lo=Math.min(...res.y,...res.fit), hi=Math.max(...res.y,...res.fit);
+  const tr=Object.keys(ALC).map(a=>{const idx=res.rows.map((r,i)=>r.alc===a?i:-1).filter(i=>i>=0);
+    return {type:"scatter",mode:"markers",name:ALC[a].n,x:idx.map(i=>res.fit[i]),y:idx.map(i=>res.y[i]),text:idx.map(i=>PER_LABEL[res.rows[i].per]),
+      marker:{color:ALC[a].c,size:7,opacity:.85},hovertemplate:`<b>${ALC[a].n}</b>, %{text}<br>Ajustado: %{x:.2f}<br>Observado: %{y:.2f}<extra></extra>`};});
+  tr.push({type:"scatter",mode:"lines",x:[lo,hi],y:[lo,hi],line:{color:css("--muted"),dash:"dot",width:1.2},hoverinfo:"skip",showlegend:false});
+  plot("m3",tr,{xaxis:{title:{text:"log(1 + viajes) ajustado"}},yaxis:{title:{text:"log(1 + viajes) observado"}},legend:{orientation:"h",y:-0.22,x:0}});
+}
+
+/* ---------- Hallazgo en la cabecera ---------- */
+function renderFinding(){
+  const b=fitModel("T","1").coefs[0];
+  $("#hallazgo").innerHTML=`Modelo principal (total de viajes, ejercicio 1): <b>β₁ = ${f(b.est)}</b>, con IC al 95 % de ${f(b.lo,3)} a ${f(b.hi,3)}. `+
+    (b.lo<0&&b.hi>0?"El intervalo incluye el cero: con estos datos no se detecta una relación entre la percepción de inseguridad y el uso de ECOBICI.":"El intervalo excluye el cero.");
+}
+
+/* ---------- Pestañas con #datos / #modelo ---------- */
+function show(view){
+  if(!["datos","modelo"].includes(view)) view="datos";
+  document.querySelectorAll(".view").forEach(s=>s.hidden=s.id!==view);
+  document.querySelectorAll(".lane").forEach(t=>t.setAttribute("aria-selected",String(t.getAttribute("href")==="#"+view)));
+  requestAnimationFrame(()=>{
+    document.querySelectorAll(`#${view} .plot`).forEach(el=>{if(el.data) Plotly.Plots.resize(el);});
+    if(view==="datos"&&MAP) MAP.invalidateSize();
+  });
+}
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+
+/* ---------- Controles segmentados ---------- */
+function seg(id,key,attr,cb){
+  document.querySelectorAll(`#${id} button`).forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll(`#${id} button`).forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+    STATE[key]=b.dataset[attr]; cb();
+  }));
+}
+
+function renderAll(){renderFacts();renderG1();renderG2();renderG3();renderG4();renderG5();renderMap();renderModel();renderFinding();}
+
+async function cargar(){
+  let txt=null, fuente;
+  try{const r=await fetch(RUTA_CSV,{cache:"no-store"}); if(r.ok){txt=await r.text(); fuente=`Datos leídos de <code>${RUTA_CSV}</code> en el repositorio.`;}}catch(e){}
+  if(!txt){txt=$("#csv-respaldo").textContent; fuente=`No se encontró <code>${RUTA_CSV}</code>; se usa la copia del panel incluida en esta página.`;}
+  $("#fuente").innerHTML=fuente;
+  RAW=parseCSV(txt).filter(r=>r.alcaldia_norm && ALC[r.alcaldia_norm]);
+  const keys=[...new Set(RAW.map(r=>r.anio*10+r.trimestre))].sort((a,b)=>a-b);
+  // secuencia completa de trimestres (para que los huecos se vean)
+  const y0=Math.floor(keys[0]/10), t0=keys[0]%10, y1=Math.floor(keys.at(-1)/10), t1=keys.at(-1)%10;
+  PERIODS=[]; for(let y=y0;y<=y1;y++) for(let t=1;t<=4;t++){ if((y===y0&&t<t0)||(y===y1&&t>t1)) continue; PERIODS.push(perKey(y,t)); PER_LABEL[perKey(y,t)]=`${y} T${t}`; }
+  MAPP=PERIODS.filter(p=>RAW.some(r=>perKey(r.anio,r.trimestre)===p));
+}
+
+(async()=>{
+  try{
+    await cargar();
+    initMap();
+    seg("g1-grp","g1","g",renderG1);
+    seg("g4-mode","g4","m",renderG4);
+    seg("map-var","mVar","v",renderMap);
+    seg("m-grp","grp","g",renderModel);
+    seg("m-spec","spec","s",renderModel);
+    renderAll();
+    show(location.hash.slice(1));
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{TILE.setUrl(tilesURL());renderAll();});
+  }catch(e){
+    console.error(e);
+    $("#error").innerHTML=`<div class="err"><b>No se pudo construir el tablero.</b> ${e.message}. Revisa que <code>${RUTA_CSV}</code> tenga las columnas anio, trimestre, alcaldia_norm, genero, n_viajes, estaciones_activas, inseguro_pct, seguro_pct, inversion_publica y log_inversion.</div>`;
+  }
+})();
+</script>
+</body>
+</html>
