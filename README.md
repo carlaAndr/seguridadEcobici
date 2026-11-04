@@ -287,6 +287,4 @@ Durante el desarrollo de este proyecto se usaron herramientas de inteligencia ar
 
 La inteligencia artificial se usó como herramienta de asistencia técnica y conceptual, no como sustituto del criterio científico. La definición del problema, la selección de fuentes, el planteamiento de hipótesis, las decisiones metodológicas y la interpretación de los resultados son responsabilidad de la autora.
 
----
 
-**Estado del proyecto:** caso de titulación en revisión final (noviembre 2026).
