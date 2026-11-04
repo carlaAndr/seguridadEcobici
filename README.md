@@ -203,7 +203,9 @@ Los archivos de `artefactos/` son **datos derivados del procesamiento**, no sust
 
 ## 8. Estrategia econométrica y diagrama causal
 
-![Diagrama causal del análisis](diagrama.png)
+<p align="center">
+  <a href="diagrama.png"><img src="diagrama.png" alt="Diagrama causal del análisis" width="100%"></a>
+</p>
 
 *Diagrama causal del análisis. En gris, lo que cierra el modelo (efectos fijos y controles de oferta); en línea punteada, lo que no se mide y los caminos que quedan abiertos, por los que el resultado se lee como asociación y no como efecto.*
 
