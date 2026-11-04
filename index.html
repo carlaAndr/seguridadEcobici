@@ -311,7 +311,7 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .mapwrap{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--mark);margin-top:14px}
 #mapa{height:600px}
 @media (max-width:700px){#mapa{height:560px}}
-.ov{position:absolute;z-index:800;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+.ov{position:absolute;z-index:800;background:var(--surface);
   border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.12);padding:12px 14px}
 .ov .l{display:block;font-size:.78rem;font-weight:650;color:var(--muted);margin-bottom:6px}
 .ov-var{top:12px;left:12px}
@@ -369,6 +369,49 @@ pre.cmd:has(.copy){padding-top:40px}
   .ov-var .seg button{padding:6px 10px}
   .selbar{position:static}
 }
+
+/* capas del mapa */
+.layers{display:flex;flex-direction:column;gap:6px}
+.lay{appearance:none;display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;color:var(--ink);cursor:pointer;
+  background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:7px 10px 7px 8px;position:relative}
+.lay svg{width:26px;height:26px;flex:none;color:var(--ink)}
+.lay span{display:flex;flex-direction:column;line-height:1.2}
+.lay b{font-size:.9rem}
+.lay small{font-size:.74rem;color:var(--muted)}
+.lay::after{content:"";margin-left:auto;width:16px;height:16px;border-radius:4px;border:2px solid var(--muted);flex:none}
+.lay[aria-checked="true"]{border-color:var(--lane);background:color-mix(in srgb,var(--lane) 9%,var(--surface))}
+.lay[aria-checked="true"]::after{border-color:var(--lane);background:var(--lane) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2'/%3E%3C/svg%3E") center/12px no-repeat}
+.lay[aria-checked="false"] svg{opacity:.35}
+.ov-var{width:250px}
+.ov-leg{width:240px}
+.ov-leg .lg + .lg{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.ov-leg .lg .t{display:block;font-size:.76rem;font-weight:650;color:var(--ink);margin-bottom:4px}
+.ov-leg svg{display:block}
+.ov-leg svg text{font-family:var(--font);font-size:10px;fill:var(--muted)}
+.ov-leg .none{font-size:.8rem;color:var(--muted)}
+.alc-ico{background:none;border:0}
+.alc-ico svg{overflow:visible}
+@media (max-width:700px){
+  .ov-var{width:auto;right:12px}
+  .layers{flex-direction:row}
+  .lay{flex-direction:column;gap:2px;padding:6px 4px;text-align:center}
+  .lay span{align-items:center}.lay small{display:none}.lay b{font-size:.78rem}
+  .lay::after{position:absolute;top:4px;right:4px;width:12px;height:12px;background-size:9px!important}
+  .ov-leg{top:auto!important;bottom:96px;width:150px!important}
+}
+
+.ov-leg summary{cursor:pointer;font-size:.8rem;font-weight:700;color:var(--ink);list-style:none;display:flex;justify-content:space-between;align-items:center}
+.ov-leg summary::-webkit-details-marker{display:none}
+.ov-leg summary::after{content:"▾";color:var(--lane);font-size:.9rem}
+.ov-leg:not([open]) summary::after{content:"▸"}
+.ov-leg[open] summary{margin-bottom:8px}
+@media (max-width:700px){.ov-leg:not([open]){width:auto!important}}
+
+.ov-move{top:12px;right:56px;padding:8px 12px;font:inherit;font-size:.82rem;font-weight:700;color:var(--ink);cursor:pointer}
+.ov-move.on{background:var(--lane);color:var(--lane-ink);border-color:var(--lane)}
+@media (max-width:700px){.ov-move{top:auto;bottom:96px;left:12px;right:auto}}
+#mapa .leaflet-container,#mapa{touch-action:pan-y}
+@media (max-width:700px){.scrollbox{max-height:none}}
 </style>
 </head>
 <body>
@@ -456,15 +499,24 @@ pre.cmd:has(.copy){padding-top:40px}
     </table></div>
 
     <h2 class="sub2">Mapa: percepción y uso por trimestre</h2>
-    <p class="caption">El color mide la variable elegida y el tamaño de cada círculo, los viajes del trimestre. Da clic en una alcaldía para ver sus cifras.</p>
+    <p class="caption">Encima las capas para comparar a la vez la inseguridad (color), los viajes (tamaño) y las estaciones activas (ícono con el número). Da clic en una alcaldía para ver todas sus cifras.</p>
     <div class="mapwrap">
       <div id="mapa" role="region" aria-label="Mapa interactivo de la Ciudad de México"></div>
       <div class="ov ov-var" id="ov-var">
-        <span class="l" id="lbl-var">Qué medir</span>
-        <div class="seg" role="group" aria-labelledby="lbl-var" id="map-var">
-          <button type="button" data-v="ins" aria-pressed="true">Inseguridad</button>
-          <button type="button" data-v="seg" aria-pressed="false">Seguridad</button>
-          <button type="button" data-v="via" aria-pressed="false">Viajes</button>
+        <span class="l" id="lbl-var">Capas: enciende una, dos o las tres</span>
+        <div class="layers" role="group" aria-labelledby="lbl-var" id="map-layers">
+          <button type="button" class="lay" role="checkbox" aria-checked="true" data-l="ins">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gIns" x1="0" x2="1"><stop offset="0" stop-color="#F3B743"/><stop offset=".55" stop-color="#DD6A2C"/><stop offset="1" stop-color="#A82430"/></linearGradient></defs><circle cx="12" cy="12" r="9" fill="url(#gIns)"/></svg>
+            <span><b>Inseguridad</b><small>color del círculo</small></span>
+          </button>
+          <button type="button" class="lay" role="checkbox" aria-checked="true" data-l="via">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="15" r="4"/><circle cx="15" cy="11" r="7.5"/></svg>
+            <span><b>Viajes</b><small>tamaño del círculo</small></span>
+          </button>
+          <button type="button" class="lay" role="checkbox" aria-checked="true" data-l="est">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="5" width="21" height="14" rx="7" style="fill:var(--ink)"/><g fill="none" stroke="#fff" stroke-width="1.5"><circle cx="8" cy="13.5" r="2.6"/><circle cx="16" cy="13.5" r="2.6"/><path d="M8 13.5 10.5 9h3.5l2 4.5M10.5 9l2 4.5H8"/></g></svg>
+            <span><b>Estaciones</b><small>ícono con el número</small></span>
+          </button>
         </div>
       </div>
       <div class="ov ov-time" id="ov-time">
@@ -477,7 +529,7 @@ pre.cmd:has(.copy){padding-top:40px}
           <input type="range" id="map-t" min="0" max="0" step="1" value="0" aria-label="Trimestre">
         </div>
       </div>
-      <div class="ov ov-leg" id="ov-leg"><div class="legend" id="map-legend"></div></div>
+      <details class="ov ov-leg" id="ov-leg" open><summary>Leyenda</summary><div class="legend" id="map-legend"></div></details>
     </div>
     <p class="mapnote" id="map-note" style="margin-top:8px"></p>
 
@@ -763,7 +815,7 @@ const css = v=>getComputedStyle(document.documentElement).getPropertyValue(v).tr
 const $ = s=>document.querySelector(s);
 
 let RAW=[], MOD=[], PERIODS=[], MAPP=[], PER_LABEL={};
-const STATE={g1:"T",esc:"log",g4:"raw",mVar:"ins",mT:0,grp:"Total",spec:"1",hidden:{}};
+const STATE={g1:"T",esc:"log",g4:"raw",layers:{ins:true,via:true,est:true},mT:0,grp:"Total",spec:"1",hidden:{}};
 
 /* ==================================================================
    CSV (admite comillas)
@@ -1058,8 +1110,16 @@ function initMap(){
     return;
   }
   const L=window.L;
-  MAP=L.map("mapa",{scrollWheelZoom:false,zoomControl:false}).setView([19.405,-99.175],12);
+  const touch=matchMedia("(pointer:coarse)").matches;
+  MAP=L.map("mapa",{scrollWheelZoom:false,zoomControl:false,dragging:!touch,tap:false}).setView([19.405,-99.175],12);
   L.control.zoom({position:"topright"}).addTo(MAP);
+  if(touch){
+    // En celular, el mapa no captura el dedo para que la página se pueda deslizar; se activa con un botón.
+    const b=document.createElement("button"); b.type="button"; b.className="ov ov-move"; b.textContent="Mover el mapa";
+    b.addEventListener("click",()=>{ const on=!MAP.dragging.enabled(); on?MAP.dragging.enable():MAP.dragging.disable();
+      b.textContent=on?"Listo, fijar mapa":"Mover el mapa"; b.classList.toggle("on",on); $("#mapa").style.touchAction=on?"none":"pan-y"; });
+    $(".mapwrap").appendChild(b); $("#mapa").style.touchAction="pan-y";
+  }
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(MAP);
   MAP.on("focus",()=>MAP.scrollWheelZoom.enable()); MAP.on("blur",()=>MAP.scrollWheelZoom.disable());
@@ -1073,26 +1133,57 @@ function togglePlay(){
   b.innerHTML='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>';b.setAttribute("aria-label","Pausar");
   PLAY=setInterval(()=>{STATE.mT++; if(STATE.mT>MAPP.length-1){STATE.mT=MAPP.length-1;togglePlay();return;} $("#map-t").value=STATE.mT; renderMap();},900);
 }
+const LAY_COL={stops:["#FCEFC7","#F3B743","#DD6A2C","#A82430","#5E0F22"],dom:[10,80]};
+const NEUTRAL="#7F96A0";
+function iconSVG(o,info,maxN){
+  const Ly=STATE.layers, r=o?(Ly.via?10+30*Math.sqrt(o.n/maxN):17):8;
+  const fill=!o?"none":Ly.ins?colorAt(LAY_COL.stops,(o.ins-LAY_COL.dom[0])/(LAY_COL.dom[1]-LAY_COL.dom[0])):NEUTRAL;
+  const W=Math.ceil(2*r+70), H=Math.ceil(2*r+34), cx=W/2, cy=H/2+6;
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  s+= o ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" fill-opacity=".92" stroke="#fff" stroke-width="2.5"/>`
+        : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" fill-opacity=".6" stroke="#55666C" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+  if(o&&Ly.ins){ const tc=(o.ins>45)?"#fff":"#17232A"; if(r>=15) s+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" font-family="Archivo,Arial,sans-serif" font-size="${r>=24?12:10.5}" font-weight="700" fill="${tc}">${Math.round(o.ins)}%</text>`; }
+  if(o&&Ly.est){
+    const lab=String(o.est), bw=30+lab.length*7, bx=cx+r*0.62-6, by=cy-r*0.62-16;
+    s+=`<g transform="translate(${bx},${by})"><rect width="${bw}" height="20" rx="10" fill="#17232A" stroke="#fff" stroke-width="1.5"/>
+      <g fill="none" stroke="#fff" stroke-width="1.4"><circle cx="8" cy="12" r="3"/><circle cx="17" cy="12" r="3"/><path d="M8 12 10.5 7h4l2.5 5M10.5 7l2.5 5H8"/></g>
+      <text x="24" y="14.5" font-family="Archivo,Arial,sans-serif" font-size="11.5" font-weight="700" fill="#fff">${lab}</text></g>`;
+  }
+  return {html:s+"</svg>",W,H};
+}
+function renderLegend(maxN){
+  const Ly=STATE.layers; let h="";
+  if(Ly.ins) h+=`<div class="lg"><span class="t">Color: % que se siente inseguro</span><div class="ramp" style="background:linear-gradient(90deg,${LAY_COL.stops.join(",")})"></div><div class="ends"><span>${LAY_COL.dom[0]} %</span><span>${LAY_COL.dom[1]} %</span></div></div>`;
+  if(Ly.via){ const refs=[1e4,1e5,1e6].filter(v=>v<=maxN*1.05), R=v=>10+30*Math.sqrt(v/maxN), big=R(refs.at(-1)||maxN);
+    let x=4, sv=""; refs.forEach(v=>{const r=R(v); sv+=`<circle cx="${x+r}" cy="${2*big+2-r}" r="${r}" fill="none" stroke="currentColor" stroke-width="1.2"/><text x="${x+r}" y="${2*big+15}" text-anchor="middle">${fmtC.format(v)}</text>`; x+=2*r+8;});
+    h+=`<div class="lg"><span class="t">Tamaño: viajes del trimestre</span><svg width="${x}" height="${2*big+18}" style="color:var(--muted)">${sv}</svg></div>`; }
+  if(Ly.est) h+=`<div class="lg"><span class="t">Ícono: estaciones activas</span><svg width="64" height="22"><rect x="1" y="1" width="54" height="20" rx="10" fill="#17232A"/><g fill="none" stroke="#fff" stroke-width="1.4" transform="translate(1,1)"><circle cx="8" cy="12" r="3"/><circle cx="17" cy="12" r="3"/><path d="M8 12 10.5 7h4l2.5 5M10.5 7l2.5 5H8"/></g><text x="25" y="15.5" style="fill:#fff;font-weight:700;font-size:11.5px">143</text></svg></div>`;
+  $("#map-legend").innerHTML=h||`<span class="none">Enciende al menos una capa.</span>`;
+}
 function renderMap(){
-  const v=STATE.mVar, R=RAMPS[v], per=MAPP[STATE.mT], D=OBS("T").filter(o=>o.per===per);
-  const byA=Object.fromEntries(D.map(o=>[o.alc,o])), tOf=o=>(mapVal(o,v)-R.dom[0])/(R.dom[1]-R.dom[0]);
+  const per=MAPP[STATE.mT], D=OBS("T").filter(o=>o.per===per), byA=Object.fromEntries(D.map(o=>[o.alc,o]));
+  const maxN=Math.max(...OBS("T").map(o=>o.n));
   $("#map-period").textContent=PER_LABEL[per];
-  const ends=v==="via"?["1 mil","2.5 M"]:[R.dom[0]+" %",R.dom[1]+" %"];
-  $("#map-legend").innerHTML=`<span class="l">Color: ${R.lbl}</span><div class="ramp" style="background:linear-gradient(90deg,${R.stops.join(",")})"></div><div class="ends"><span>${ends[0]}</span><span>${ends[1]}</span></div><div class="size-note" style="margin-top:6px">Tamaño del círculo: viajes del trimestre</div>`;
+  renderLegend(maxN);
   $("#map-note").textContent=GEO?"Límites de alcaldías desde artefactos/alcaldias.geojson.":"Los círculos marcan la ubicación aproximada de cada alcaldía. Para dibujar sus límites, agrega artefactos/alcaldias.geojson al repositorio.";
   if(!MAP) return;
   const L=window.L; LAYER.clearLayers(); MARK={};
   if(GEO){ if(GEOLAYER) MAP.removeLayer(GEOLAYER);
     GEOLAYER=L.geoJSON(GEO,{interactive:false,style:ft=>{const key=Object.values(ft.properties||{}).map(norm).find(s=>ALC[s]); const o=key&&byA[key];
-      return o?{color:"#17232A",weight:1.2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.5}:{color:"#55666C",weight:.6,fillOpacity:0,dashArray:"3 3"};}}).addTo(MAP); }
-  const maxN=Math.max(...OBS("T").map(o=>o.n));
-  for(const a in ALC){ const o=byA[a], info=ALC[a];
-    if(!o){ MARK[a]=L.circleMarker(info.ll,{radius:7,color:"#55666C",weight:1.5,dashArray:"3 3",fillOpacity:0}).bindTooltip(`${info.n}: sin dato en ${PER_LABEL[per]}`).addTo(LAYER); continue; }
-    const r=9+34*Math.sqrt(o.n/maxN);
-    MARK[a]=L.circleMarker(info.ll,{radius:r,color:"#ffffff",weight:2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.9})
-      .bindTooltip(`${info.n}: ${v==="via"?fmt.format(o.n)+" viajes":pct(v==="ins"?o.ins:o.seg)}`,{direction:"top",offset:[0,-r]})
-      .bindPopup(`<div class="pop"><h4>${info.n}, ${PER_LABEL[per]}</h4><dl><dt>Se siente insegura</dt><dd>${pct(o.ins)}</dd><dt>Se siente segura</dt><dd>${pct(o.seg)}</dd><dt>Viajes</dt><dd>${fmt.format(o.n)}</dd><dt>Estaciones activas</dt><dd>${fmt.format(o.est)}</dd><dt>Inversión pública</dt><dd>${Number.isFinite(o.inv)?fmtC.format(o.inv)+" MXN":"sin dato"}</dd></dl></div>`).addTo(LAYER);
+      return o&&STATE.layers.ins?{color:"#17232A",weight:1.2,fillColor:colorAt(LAY_COL.stops,(o.ins-10)/70),fillOpacity:.35}:{color:"#55666C",weight:.8,fillOpacity:0,dashArray:"3 3"};}}).addTo(MAP); }
+  for(const a in ALC){ const o=byA[a], info=ALC[a], ic=iconSVG(o,info,maxN);
+    const icon=L.divIcon({html:ic.html,className:"alc-ico",iconSize:[ic.W,ic.H],iconAnchor:[ic.W/2,ic.H/2+6]});
+    const parts=o?[STATE.layers.ins?`${pct(o.ins)} inseguro`:null,STATE.layers.via?`${fmt.format(o.n)} viajes`:null,STATE.layers.est?`${fmt.format(o.est)} estaciones`:null].filter(Boolean):[];
+    const m=L.marker(info.ll,{icon,riseOnHover:true,title:info.n,keyboard:true})
+      .bindTooltip(o?`<b>${info.n}</b>${parts.length?"<br>"+parts.join("<br>"):""}`:`${info.n}: sin dato en ${PER_LABEL[per]}`,{direction:"top",offset:[0,-ic.H/2+6]});
+    if(o) m.bindPopup(`<div class="pop"><h4>${info.n}, ${PER_LABEL[per]}</h4><dl><dt>Se siente insegura</dt><dd>${pct(o.ins)}</dd><dt>Se siente segura</dt><dd>${pct(o.seg)}</dd><dt>Viajes</dt><dd>${fmt.format(o.n)}</dd><dt>Estaciones activas</dt><dd>${fmt.format(o.est)}</dd><dt>Inversión pública</dt><dd>${Number.isFinite(o.inv)?fmtC.format(o.inv)+" MXN":"sin dato"}</dd></dl></div>`);
+    MARK[a]=m.addTo(LAYER);
   }
+}
+function initLayers(){
+  document.querySelectorAll("#map-layers .lay").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.l; STATE.layers[k]=!STATE.layers[k]; b.setAttribute("aria-checked",String(STATE.layers[k])); safe(renderMap)();
+  }));
 }
 
 /* ==================================================================
@@ -1265,7 +1356,10 @@ function initMenu(){
     let id=secs[0].id; for(const s of secs){ if(s.getBoundingClientRect().top<=110) id=s.id; }
     if(innerHeight+scrollY>=document.documentElement.scrollHeight-4) id=secs.at(-1).id;
     if(id===cur) return; cur=id;
-    links.forEach(a=>{const on=a.getAttribute("href")==="#"+id; a.setAttribute("aria-current",String(on)); if(on) a.scrollIntoView({block:"nearest",inline:"nearest"});});
+    const menu=$("#menu");
+    links.forEach(a=>{const on=a.getAttribute("href")==="#"+id; a.setAttribute("aria-current",String(on));
+      if(on && menu.scrollWidth>menu.clientWidth){ const l=a.offsetLeft-menu.offsetLeft, r=l+a.offsetWidth;
+        if(l<menu.scrollLeft) menu.scrollLeft=l-8; else if(r>menu.scrollLeft+menu.clientWidth) menu.scrollLeft=r-menu.clientWidth+8; }});
   };
   addEventListener("scroll",()=>{ if(!tick){tick=true;requestAnimationFrame(update);} },{passive:true});
   update();
@@ -1322,7 +1416,8 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{render
   seg("g1-grp","g1","g",()=>safe(renderG1,"g1")());
   seg("g1-esc","esc","e",()=>safe(renderG1,"g1")());
   seg("g4-mode","g4","m",()=>safe(renderG4,"g4")());
-  seg("map-var","mVar","v",()=>safe(renderMap)());
+  initLayers();
+  if(matchMedia("(max-width:700px)").matches) $("#ov-leg").removeAttribute("open");
 
   try{
     MOD=parseCSV(await getText(RUTA_MODELO),["seccion","modelo","grupo","variante","variable"]);
