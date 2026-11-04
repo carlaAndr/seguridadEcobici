@@ -80,10 +80,9 @@ Las tablas de robustez, las figuras y la discusión completa están en el [docum
 seguridadEcobici/
 ├── README.md
 ├── index.html                  Sitio del proyecto (GitHub Pages)
+├── diagrama.png                Diagrama causal del modelo (sección 8)
 ├── documento/
 │   └── seguridad_ecobici.pdf   Documento del caso en formato IEEE
-├── images/
-│   └── diagrama_causal.png     Diagrama causal del modelo
 ├── PaneldeDatos.ipynb          Construcción del panel
 ├── Modelado.ipynb              Análisis exploratorio, modelos y figuras
 ├── dataIngestion/
@@ -110,7 +109,7 @@ La versión preparada para correr con Docker vive en un repositorio aparte: **[c
 | `PaneldeDatos.ipynb` | Une las tres fuentes procesadas en un solo panel alcaldía × trimestre × sexo y genera `artefactos/panel_ecobici.csv`. |
 | `Modelado.ipynb` | Toma el panel, hace el análisis exploratorio, estima los modelos de efectos fijos, la robustez y el bootstrap, y exporta tablas, figuras y `artefactos/modelado.csv`. |
 | `documento/seguridad_ecobici.pdf` | Documento final del caso, con métodos, supuestos, resultados y referencias. |
-| `images/diagrama_causal.png` | Diagrama causal que se muestra en la sección 8 de este README. |
+| `diagrama.png` | Diagrama causal del análisis: qué caminos cierra el modelo y cuáles quedan abiertos. Se muestra en la sección 8 de este README. |
 
 ### Carpetas
 
@@ -186,7 +185,7 @@ Los archivos de `artefactos/` son **datos derivados del procesamiento**, no sust
 | `percepcion_seguridad_alcaldias_cdmx.csv` | 400 | 16 alcaldías × 25 levantamientos. `anio`, `mes`, `trimestre`, `region`, `alcaldia`, `poblacion_18mas`, `seguro_abs`, `seguro_pct`, `inseguro_abs`, `inseguro_pct` |
 | `inversion_publica_alcaldia.csv` | 96 | 16 alcaldías × 2020–2025. `año`, `alcaldia`, `inversion_publica` |
 | `panel_ecobici.csv` | 345 | Panel alcaldía × trimestre × sexo (ver tabla siguiente). Lo genera `PaneldeDatos.ipynb` y lo usan `Modelado.ipynb` y el sitio. |
-| `modelado.csv` | 41 | Una fila por coeficiente de cada modelo: principales, diferencia mujeres − hombres y variantes de robustez, con EE, t, p, IC, N y cambio % por 10 puntos. Lo genera `Modelado.ipynb` y lo lee el sitio. |
+| `modelado.csv` | 83 | Una fila por coeficiente de cada modelo: principales, diferencia mujeres − hombres y variantes de robustez (total, mujeres y hombres), con EE, t, p, IC, N y cambio % por 10 puntos. Lo genera `Modelado.ipynb` y lo lee el sitio. |
 
 ### `panel_ecobici.csv`
 
@@ -204,7 +203,7 @@ Los archivos de `artefactos/` son **datos derivados del procesamiento**, no sust
 
 ## 8. Estrategia econométrica y diagrama causal
 
-![Diagrama causal del análisis](images/diagrama_causal.png)
+![Diagrama causal del análisis](diagrama.png)
 
 *Diagrama causal del análisis. En gris, lo que cierra el modelo (efectos fijos y controles de oferta); en línea punteada, lo que no se mide y los caminos que quedan abiertos, por los que el resultado se lee como asociación y no como efecto.*
 
@@ -287,4 +286,6 @@ Durante el desarrollo de este proyecto se usaron herramientas de inteligencia ar
 
 La inteligencia artificial se usó como herramienta de asistencia técnica y conceptual, no como sustituto del criterio científico. La definición del problema, la selección de fuentes, el planteamiento de hipótesis, las decisiones metodológicas y la interpretación de los resultados son responsabilidad de la autora.
 
+---
 
+**Estado del proyecto:** caso de titulación en revisión final (noviembre 2026).
