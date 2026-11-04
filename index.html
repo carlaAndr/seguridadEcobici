@@ -133,7 +133,7 @@ input[type=range]{flex:1;accent-color:var(--lane)}
 .defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 28px;margin:10px 0 0;font-size:.9rem;color:var(--muted)}
 .defs b{color:var(--ink);font-weight:600}
 .readout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;margin-top:20px}
-@media (max-width:900px){.readout{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.readout{grid-template-columns:1fr}}
 .beta{font-stretch:118%;font-weight:760;font-size:clamp(2.4rem,5vw,3.6rem);line-height:1;letter-spacing:-.02em;margin:10px 0 4px}
 .ci{font-size:1rem;color:var(--muted);margin:0 0 14px}
 .verdict{font-size:1.02rem;max-width:60ch;margin:0;padding-top:14px;border-top:1px solid var(--line)}
@@ -220,8 +220,7 @@ html{scroll-behavior:smooth;scroll-padding-top:calc(64px + env(safe-area-inset-t
 .sec > h2{font-size:clamp(1.7rem,3.4vw,2.5rem);margin-bottom:10px;max-width:24ch}
 .sec h2.sub2{font-size:clamp(1.3rem,2.2vw,1.65rem);margin:44px 0 6px;max-width:none}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
-@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
-.stack{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
 .prose{max-width:66ch}
 .prose p{margin:0 0 14px}
 .prose ul{margin:0 0 14px;padding-left:1.2em}
@@ -295,9 +294,81 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .says ul{margin:0;padding-left:1.15em}.says li{margin-bottom:8px}
 .about{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px}
 .about .block p{margin:6px 0 0;font-size:.92rem}
-.about a{text-underline-offset:3px;overflow-wrap:anywhere}
-.stat strong.sm{font-size:clamp(1.2rem,2.3vw,1.6rem);white-space:nowrap;padding-top:.25em}
+.about a{text-underline-offset:3px}
+
+/* ================== v4 ================== */
+.btns3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:28px;max-width:860px}
+@media (max-width:700px){.btns3{grid-template-columns:minmax(0,1fr)}}
+.btns3 .btn{justify-content:center;width:100%;padding:13px 16px;background:color-mix(in srgb,var(--paper) 6%,transparent);border-color:color-mix(in srgb,var(--paper) 45%,transparent);color:var(--paper)}
+.btns3 .btn:hover{background:var(--lane);border-color:var(--lane);color:var(--lane-ink);filter:none}
+.btns3 .btn[aria-disabled="true"]:hover{background:color-mix(in srgb,var(--paper) 6%,transparent);color:var(--paper);border-color:color-mix(in srgb,var(--paper) 45%,transparent)}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:nth-child(3){padding-left:0;border-left:0}}
+.stat strong{font-size:clamp(1.6rem,3.4vw,2.6rem)}
+.stat strong.sm{font-size:clamp(1.25rem,2.6vw,2rem);white-space:nowrap}
+
+/* mapa con controles encimados */
+.mapwrap{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--mark);margin-top:14px}
+#mapa{height:600px}
+@media (max-width:700px){#mapa{height:560px}}
+.ov{position:absolute;z-index:800;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.12);padding:12px 14px}
+.ov .l{display:block;font-size:.78rem;font-weight:650;color:var(--muted);margin-bottom:6px}
+.ov-var{top:12px;left:12px}
+.ov-time{left:12px;bottom:12px;width:min(420px,calc(100% - 24px))}
+.ov-time .row{display:flex;align-items:center;gap:12px}
+.ov-time .period{font-size:1.5rem;min-width:5.6em}
+.ov-leg{right:12px;bottom:12px;width:220px}
+@media (max-width:700px){.ov-leg{right:12px;left:auto;top:92px;bottom:auto;width:180px}.ov-time .period{font-size:1.2rem;min-width:4.8em}}
+.ov .legend{margin:0}
+.mapmsg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted);z-index:1}
+.leaflet-top.leaflet-right{margin-top:0}
+
+/* gráficas en pares de igual altura */
+.charts{align-items:stretch}
+.charts > .block{display:flex;flex-direction:column}
+.charts > .block .chart{flex:1}
+.pair{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;margin-top:16px;align-items:stretch}
+.pair > .block{display:flex;flex-direction:column;justify-content:center}
+@media (max-width:1000px){.pair{grid-template-columns:minmax(0,1fr)}}
+.tbl.compact{font-size:.82rem}
+.tbl.compact th,.tbl.compact td{padding:7px 6px}
+
+/* panel de resultados ligado al selector */
+.resbox{margin-top:26px;border:2px solid var(--lane);border-radius:12px;background:color-mix(in srgb,var(--lane) 5%,var(--paper));padding:0 clamp(12px,2.2vw,26px) clamp(18px,2.5vw,28px)}
+.selbar{position:sticky;top:58px;z-index:900;margin:0 calc(-1 * clamp(12px,2.2vw,26px));padding:14px clamp(12px,2.2vw,26px);
+  background:color-mix(in srgb,var(--lane) 14%,var(--paper));border-bottom:1px solid color-mix(in srgb,var(--lane) 35%,transparent);border-radius:10px 10px 0 0;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.selbar .hint{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.95rem}
+.selbar .hint svg{width:20px;height:20px;color:var(--lane);flex:none}
+.selbar .seg{background:var(--surface);border-color:color-mix(in srgb,var(--lane) 45%,var(--line))}
+.selbar .seg button[aria-pressed="true"]{background:var(--lane);color:var(--lane-ink)}
+.selbar .now{margin-left:auto;font-size:.85rem;color:var(--muted)}
+.selbar .now b{color:var(--ink)}
+@media (max-width:760px){.selbar .now{margin-left:0;width:100%}}
+.chip{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--lane);color:var(--lane-ink);vertical-align:middle;margin-left:8px;white-space:nowrap}
+.resbox .block{background:var(--surface)}
+.resbox h2.sub2{margin-top:36px}
+.resbox .eqbox{margin-top:20px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin-top:20px;align-items:stretch}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.grid2 > .block{height:100%}
+.two > *,.grid2 > *,.pair > *,.readout > *{min-width:0}
+.caption code{overflow-wrap:anywhere}
 #ex-table td:nth-child(2),#ex-table td:nth-child(3),#ex-table th:nth-child(2),#ex-table th:nth-child(3){text-align:left}
+.about{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1000px){.about{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.about{grid-template-columns:minmax(0,1fr)}}
+.about a{overflow-wrap:anywhere}
+.lims .block p{margin:6px 0 0;font-size:.95rem}
+pre.cmd:has(.copy){padding-top:40px}
+@media (max-width:700px){
+  .ov-leg{top:118px !important;width:160px !important;padding:8px 10px;font-size:.72rem}
+  .ov-leg .size-note{display:none}
+  .ov-var{padding:8px 10px}
+  .ov-var .seg button{padding:6px 10px}
+  .selbar{position:static}
+}
 </style>
 </head>
 <body>
@@ -324,16 +395,17 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 <!-- =================== INICIO =================== -->
 <header class="street" id="inicio">
   <div class="wrap">
-    <p class="kicker">Trabajo de titulación por caso, Licenciatura en Ciencia de Datos, ITAM</p>
+    <p class="kicker">Carla Andrea Sosa Peralta, Licenciatura en Ciencia de Datos, ITAM</p>
     <h1>Seguridad percibida y movilidad ciclista</h1>
-    <p class="byline" style="margin-top:14px">Carla Andrea Sosa Peralta</p>
-    <p class="problem">¿Usan menos ECOBICI las alcaldías donde más gente se siente insegura? Lo estudio con un panel de seis alcaldías de la Ciudad de México entre 2020 y 2026.</p>
-    <p class="finding" id="hallazgo">Resultado: β₁ = 0.0064, IC 95 % [−0.014, 0.027]; no se rechaza H₀. No se detecta asociación entre la percepción de inseguridad y los viajes en ECOBICI.</p>
-    <div class="btns">
-      <a class="btn primary" id="btn-doc" href="documento/seguridad_ecobici.pdf">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 2.5h7l3.5 3.5v11.5H5z M12 2.5V6h3.5"/></svg>Leer el documento completo</a>
+    <p class="problem"><b>El problema:</b> no sabemos si el miedo a la calle frena el uso de ECOBICI, es decir, si las alcaldías donde más gente se siente insegura hacen menos viajes.</p>
+    <p class="finding" id="hallazgo"><b>El resultado:</b> β₁ = 0.0064, IC 95 % [−0.014, 0.027]; no se rechaza H₀. Con seis alcaldías entre 2020 y 2026 no se detecta asociación entre la percepción de inseguridad y los viajes.</p>
+    <div class="btns3">
+      <a class="btn" id="btn-doc" href="documento/seguridad_ecobici.pdf">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 2.5h7l3.5 3.5v11.5H5z M12 2.5V6h3.5M7.5 11h5M7.5 14h5"/></svg>Documento completo (PDF)</a>
       <a class="btn" href="https://github.com/carlaAndr/seguridadEcobici">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 6 3 10l4 4M13 6l4 4-4 4"/></svg>Ver el repositorio</a>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 6 3 10l4 4M13 6l4 4-4 4"/></svg>Repositorio</a>
+      <a class="btn" href="https://github.com/carlaAndr/dockerSeguridadEcobici">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="8" width="15" height="8" rx="1.5"/><path d="M5 8V5.5h3V8M8.5 8V5.5h3V8M12 8V5.5h3V8"/></svg>Repositorio con Docker</a>
     </div>
     <div class="stats" id="stats"></div>
   </div>
@@ -344,14 +416,15 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 
   <!-- =================== PREGUNTA =================== -->
   <section class="sec" id="pregunta">
-    <h2>La pregunta y por qué importa</h2>
+    <h2>Pregunta y ¿por qué es relevante?</h2>
     <div class="two">
       <div class="prose">
-        <p><b>Pregunta:</b> cuando sube la proporción de residentes que se sienten inseguros en una alcaldía, ¿bajan los viajes en ECOBICI que empiezan ahí?</p>
-        <p>La bicicleta compartida solo funciona si la gente se siente cómoda usándola. Si el miedo a la calle frena su uso, mejorar la seguridad en el entorno de las estaciones sería parte de la política de movilidad, no un tema aparte. La pregunta importa en particular para las mujeres, que reportan más inseguridad en el espacio público.</p>
+        <p><b>La pregunta.</b> Cuando sube la proporción de residentes que se sienten inseguros en una alcaldía, ¿bajan los viajes en ECOBICI que empiezan ahí?</p>
+        <p><b>¿Por qué es relevante?</b> La bicicleta compartida solo funciona si la gente se siente cómoda usándola. Si el miedo a la calle frena su uso, mejorar la seguridad en el entorno de las estaciones sería parte de la política de movilidad, no un tema aparte. La pregunta importa en particular para las mujeres, que reportan más inseguridad en el espacio público y hacen alrededor de una cuarta parte de los viajes en ECOBICI.</p>
+        <p>Además, la evidencia sirve para decidir dónde poner recursos: si la percepción de inseguridad no se asocia con el uso a nivel alcaldía, conviene medirla más cerca de las estaciones antes de priorizar intervenciones.</p>
       </div>
       <div class="prose">
-        <p><b>Cómo se responde:</b> comparo a cada alcaldía consigo misma a lo largo del tiempo. Los efectos fijos de alcaldía (αᵢ) quitan lo que no cambia, como su ubicación o su nivel socioeconómico, y los de trimestre (λₜ) quitan lo que afecta a toda la ciudad a la vez, como la pandemia. También controlo la oferta: estaciones activas e inversión pública.</p>
+        <p><b>Cómo se responde.</b> Comparo a cada alcaldía consigo misma a lo largo del tiempo. Los efectos fijos de alcaldía (αᵢ) quitan lo que no cambia, como su ubicación o su nivel socioeconómico, y los de trimestre (λₜ) quitan lo que afecta a toda la ciudad a la vez, como la pandemia. También controlo la oferta: estaciones activas e inversión pública.</p>
         <p>El diagrama resume qué cierra el modelo y qué queda abierto. Pasa el cursor sobre cada caja para leer qué representa.</p>
       </div>
     </div>
@@ -370,8 +443,6 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
       <div class="source"><h3>EFIPEM, INEGI</h3><p>Estadística de Finanzas Públicas Estatales y Municipales: inversión pública ejercida por cada alcaldía. Anual.</p><p class="per" id="per-efi"></p></div>
     </div>
 
-    <div class="facts" id="facts" style="margin-top:22px"></div>
-
     <h2 class="sub2">Qué mide cada variable</h2>
     <div class="tablewrap"><table class="vars" id="vars">
       <thead><tr><th>Variable</th><th>Fuente</th><th>Qué mide</th><th>Papel en el modelo</th></tr></thead>
@@ -383,46 +454,39 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
         <tr><td>αᵢ, λₜ</td><td>—</td><td>Efectos fijos de alcaldía y de trimestre.</td><td>Absorben lo fijo de cada alcaldía y lo común a toda la ciudad</td></tr>
       </tbody>
     </table></div>
-    <p class="caption" style="margin-top:8px">La percepción de la ENSU es de residentes, no de quienes viajan: es una aproximación a lo que el estudio quiere medir.</p>
 
     <h2 class="sub2">Mapa: percepción y uso por trimestre</h2>
-    <p class="caption">El color mide la variable elegida y el tamaño de cada círculo, los viajes del trimestre. Mueve la barra o presiona reproducir.</p>
-    <div class="mapgrid" style="margin-top:14px">
+    <p class="caption">El color mide la variable elegida y el tamaño de cada círculo, los viajes del trimestre. Da clic en una alcaldía para ver sus cifras.</p>
+    <div class="mapwrap">
       <div id="mapa" role="region" aria-label="Mapa interactivo de la Ciudad de México"></div>
-      <aside class="side">
-        <div>
-          <label class="l" id="lbl-var">Qué medir</label>
-          <div class="seg" role="group" aria-labelledby="lbl-var" id="map-var">
-            <button type="button" data-v="ins" aria-pressed="true">Inseguridad</button>
-            <button type="button" data-v="seg" aria-pressed="false">Seguridad</button>
-            <button type="button" data-v="via" aria-pressed="false">Viajes</button>
-          </div>
+      <div class="ov ov-var" id="ov-var">
+        <span class="l" id="lbl-var">Qué medir</span>
+        <div class="seg" role="group" aria-labelledby="lbl-var" id="map-var">
+          <button type="button" data-v="ins" aria-pressed="true">Inseguridad</button>
+          <button type="button" data-v="seg" aria-pressed="false">Seguridad</button>
+          <button type="button" data-v="via" aria-pressed="false">Viajes</button>
         </div>
-        <div>
-          <label class="l" for="map-t">Trimestre</label>
+      </div>
+      <div class="ov ov-time" id="ov-time">
+        <label class="l" for="map-t">Trimestre</label>
+        <div class="row">
           <div class="period" id="map-period">—</div>
-          <div class="slider-row" style="margin-top:10px">
-            <button type="button" class="play" id="map-play" aria-label="Reproducir la evolución trimestral">
-              <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
-            </button>
-            <input type="range" id="map-t" min="0" max="0" step="1" value="0" aria-label="Trimestre">
-          </div>
+          <button type="button" class="play" id="map-play" aria-label="Reproducir la evolución trimestral">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+          </button>
+          <input type="range" id="map-t" min="0" max="0" step="1" value="0" aria-label="Trimestre">
         </div>
-        <div class="legend" id="map-legend"></div>
-        <div>
-          <label class="l" id="lbl-rank">Ordenadas por la variable elegida</label>
-          <ul class="rank" id="map-rank" aria-labelledby="lbl-rank"></ul>
-        </div>
-        <p class="mapnote" id="map-note"></p>
-      </aside>
+      </div>
+      <div class="ov ov-leg" id="ov-leg"><div class="legend" id="map-legend"></div></div>
     </div>
+    <p class="mapnote" id="map-note" style="margin-top:8px"></p>
 
     <div class="charts">
       <article class="block span-12">
         <div class="block-head">
           <div>
-            <h3>Los viajes crecen con la red: las alcaldías nuevas entran con pocos viajes</h3>
-            <p class="caption">Viajes por trimestre. Los huecos son trimestres sin observación. Activa o desactiva cada alcaldía con las casillas.</p>
+            <h3>Gráfica 1. Viajes por trimestre en cada alcaldía</h3>
+            <p class="caption">Los viajes crecen con la red y las alcaldías nuevas entran con pocos viajes. Pasa el cursor para ver los valores de todas las alcaldías en ese trimestre; usa las casillas para ocultar alguna.</p>
           </div>
           <div class="ctrls">
             <div class="seg" role="group" aria-label="Grupo de viajes" id="g1-grp">
@@ -439,28 +503,42 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
         <div class="chart" id="g1"></div>
       </article>
 
-      <article class="block span-7">
+      <article class="block span-6">
         <div class="block-head"><div>
-          <h3>Benito Juárez se siente mucho más segura que las demás alcaldías</h3>
-          <p class="caption">% de residentes que se sienten inseguros (ENSU 1.7). Usa las casillas para comparar alcaldías.</p>
+          <h3>Gráfica 2. Percepción de inseguridad por alcaldía</h3>
+          <p class="caption">% de residentes que se sienten inseguros (ENSU 1.7). Benito Juárez se siente mucho más segura que las demás.</p>
         </div></div>
         <div class="chart" id="g2"></div>
       </article>
 
-      <article class="block span-5">
+      <article class="block span-6">
         <div class="block-head"><div>
-          <h3 id="g5-title">Quién viaja: composición por sexo</h3>
-          <p class="caption">Participación de cada registro de sexo en los viajes del año. 2026 incluye solo el primer trimestre.</p>
-        </div></div>
-        <div class="chart" id="g5"></div>
-      </article>
-
-      <article class="block span-12">
-        <div class="block-head"><div>
-          <h3>Cobertura: tres alcaldías desde 2020 y tres desde 2023</h3>
-          <p class="caption">Qué alcaldía tiene dato en qué trimestre. El color es el total de viajes en escala logarítmica.</p>
+          <h3>Gráfica 3. Cobertura del panel</h3>
+          <p class="caption">Qué alcaldía tiene dato en qué trimestre, coloreado por viajes en escala logarítmica. Las celdas vacías son los huecos del panel no balanceado.</p>
         </div></div>
         <div class="chart" id="g3"></div>
+      </article>
+
+      <article class="block span-7">
+        <div class="block-head">
+          <div>
+            <h3>Gráfica 4. Viajes e inseguridad, entre y dentro de alcaldías</h3>
+          </div>
+          <div class="seg" role="group" aria-label="Tipo de comparación" id="g4-mode">
+            <button type="button" data-m="raw" aria-pressed="true">Entre alcaldías</button>
+            <button type="button" data-m="within" aria-pressed="false">Dentro de cada alcaldía</button>
+          </div>
+        </div>
+        <div class="chart" id="g4"></div>
+        <p class="caption" id="g4-cap" style="margin-top:8px"></p>
+      </article>
+
+      <article class="block span-5">
+        <div class="block-head"><div>
+          <h3 id="g5-title">Gráfica 5. Composición por sexo</h3>
+          <p class="caption">Participación en los viajes de cada año: mujeres, hombres, otro y sin registro. 2026 incluye solo el primer trimestre.</p>
+        </div></div>
+        <div class="chart" id="g5"></div>
       </article>
     </div>
 
@@ -485,37 +563,37 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     <h2>Resultados</h2>
     <p class="lede">Todas las cifras están en la misma unidad: <em>cambio % en viajes por cada 10 puntos más de población insegura</em>, siempre con su intervalo de confianza al 95 %. Vienen de <code>Modelado.ipynb</code>, exportadas en <code>artefactos/modelado.csv</code>.</p>
 
-    <article class="block">
-      <h3>Especificación</h3>
-      <div class="eq" aria-label="Ecuación del modelo">
-        log(1 + <i>viajes</i><sub><i>it</i></sub>) = <span class="b">β<sub>1</sub></span>·<i>inseguro</i><sub><i>it</i></sub> + γ·<i>estaciones</i><sub><i>it</i></sub><span id="eq-inv"></span> + α<sub><i>i</i></sub> + λ<sub><i>t</i></sub> + ε<sub><i>it</i></sub>
-      </div>
-      <p class="caption">Se espera β₁ &lt; 0. La prueba es bilateral, H₀: β₁ = 0 contra H₁: β₁ ≠ 0. Errores agrupados por alcaldía; p e intervalos con t de G − 1 grados de libertad.</p>
-    </article>
-
-    <div id="modelo-contenido">
-      <div class="ctrls" style="margin-top:24px">
+    <div class="resbox" id="modelo-contenido">
+      <div class="selbar" role="group" aria-label="Selector de grupo y ejercicio para toda la sección">
+        <span class="hint"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h14M6 10h8M8.5 15h3"/></svg>Elige qué viajes analizar:</span>
         <div class="seg" role="group" aria-label="Grupo" id="m-grp">
           <button type="button" data-g="Total" aria-pressed="true">Total de viajes</button>
           <button type="button" data-g="Mujeres" aria-pressed="false">Mujeres</button>
           <button type="button" data-g="Hombres" aria-pressed="false">Hombres</button>
         </div>
-        <div class="seg" role="group" aria-label="Especificación" id="m-spec">
+        <div class="seg" role="group" aria-label="Ejercicio" id="m-spec">
           <button type="button" data-s="1" aria-pressed="true">Ejercicio 1</button>
           <button type="button" data-s="2" aria-pressed="false">Ejercicio 2: con inversión</button>
         </div>
+        <span class="now" id="m-now">Todo lo que está dentro de este recuadro cambia con tu selección.</span>
       </div>
 
-      <div class="readout">
+      <article class="block eqbox">
+        <h3>Especificación <span class="chip" data-chip></span></h3>
+        <div class="eq" aria-label="Ecuación del modelo" id="eq"></div>
+        <p class="caption" id="eq-cap"></p>
+      </article>
+
+      <div class="grid2">
         <article class="block">
-          <h3>Efecto estimado de la inseguridad percibida</h3>
+          <h3>Efecto estimado de la inseguridad percibida <span class="chip" data-chip></span></h3>
           <div class="beta" id="m-beta">—</div>
           <p class="ci" id="m-ci"></p>
           <p class="verdict" id="m-verdict"></p>
           <span class="tag" id="m-tag"></span>
         </article>
         <article class="block">
-          <h3>Coeficientes de esta especificación</h3>
+          <h3>Coeficientes <span class="chip" data-chip></span></h3>
           <div class="tablewrap"><table id="m-table" aria-label="Tabla de coeficientes"></table></div>
           <div class="meta" id="m-meta"></div>
         </article>
@@ -523,41 +601,27 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 
       <h2 class="sub2" id="t3-title">Tabla III. Modelos principales</h2>
       <p class="what" id="t3-what"></p>
-      <div class="stack" style="margin-top:16px">
+      <div class="pair">
         <article class="block"><div class="chart" id="m1"></div></article>
-        <article class="block"><div class="tablewrap"><table class="tbl" id="t3"></table></div>
-          <p class="caption" style="margin-top:10px">EE agrupados por alcaldía. IC y p con t de 5 gl. Las dos últimas filas usan como variable dependiente log(1 + viajes de mujeres) − log(1 + viajes de hombres).</p></article>
+        <article class="block"><div class="tablewrap"><table class="tbl compact" id="t3"></table></div>
+          <p class="caption" style="margin-top:10px">EE agrupados por alcaldía; IC y p con t de 5 gl. Las filas de tu selección están resaltadas. La diferencia mujeres − hombres usa como variable dependiente log(1 + viajes de mujeres) − log(1 + viajes de hombres).</p></article>
       </div>
 
       <h2 class="sub2" id="t4-title">Tabla IV. Robustez</h2>
       <p class="what" id="t4-what"></p>
-      <div class="stack" style="margin-top:16px">
+      <div class="pair">
         <article class="block"><div class="chart" id="m2"></div></article>
-        <article class="block"><div class="tablewrap"><table class="tbl" id="t4"></table></div>
-          <p class="caption" style="margin-top:10px">Ejercicio 1 con el total de viajes. Con menos alcaldías bajan los grados de libertad y los intervalos se ensanchan.</p></article>
+        <article class="block"><div class="tablewrap"><table class="tbl compact" id="t4"></table></div>
+          <p class="caption" style="margin-top:10px" id="t4-cap">Ejercicio 1. Con menos alcaldías bajan los grados de libertad y los intervalos se ensanchan.</p></article>
       </div>
 
-      <h2 class="sub2" id="b-title">De dónde sale β₁</h2>
-      <p class="what" id="b-what"></p>
-      <article class="block" style="margin-top:16px">
-        <div class="block-head">
-          <p class="caption" id="b-cap" style="margin:0"></p>
-          <div class="seg" role="group" aria-label="Vista" id="b-view">
-            <button type="button" data-b="raw" aria-pressed="true">Datos crudos</button>
-            <button type="button" data-b="fe" aria-pressed="false">Sin efectos fijos</button>
-            <button type="button" data-b="fee" aria-pressed="false">Sin efectos fijos ni estaciones</button>
-          </div>
-        </div>
-        <div class="chart" id="m3"></div>
-      </article>
-
-      <div class="two" style="margin-top:20px">
+      <div class="grid2" style="margin-top:28px">
         <article class="block">
-          <h3>¿Responden distinto mujeres y hombres?</h3>
+          <h3>¿Responden distinto mujeres y hombres? <span class="chip" data-chip-ej></span></h3>
           <div id="m-diff"></div>
         </article>
         <article class="block">
-          <h3>¿Qué tan grande tendría que ser para verse?</h3>
+          <h3>¿Qué tan grande tendría que ser para verse? <span class="chip" data-chip></span></h3>
           <p class="verdict" id="m-mde" style="border-top:0;padding-top:8px"></p>
         </article>
       </div>
@@ -586,13 +650,11 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     </div>
 
     <h2 class="sub2">Límites principales</h2>
-    <div class="prose">
-      <ul>
-        <li><b>Escala de la medición.</b> La ENSU mide a residentes de toda la alcaldía, no a quienes viajan ni el entorno de cada estación. Los resultados son compatibles con los límites de medir la percepción así.</li>
-        <li><b>Pocos grupos.</b> Con seis alcaldías los errores agrupados son imprecisos; por eso se usa t con 5 gl, y un wild cluster bootstrap da una conclusión similar.</li>
-        <li><b>Expansión del sistema.</b> Tres alcaldías entran en 2023 con pocos viajes. La Tabla IV muestra que el coeficiente es sensible a esos trimestres de entrada.</li>
-        <li><b>Control de estaciones.</b> Las estaciones activas se cuentan con estaciones que tuvieron viajes, así que dependen del propio resultado.</li>
-      </ul>
+    <div class="grid2 lims">
+      <article class="block"><h3>Escala de la medición</h3><p>La ENSU mide a residentes de toda la alcaldía, no a quienes viajan ni el entorno de cada estación. Los resultados son compatibles con los límites de medir la percepción así.</p></article>
+      <article class="block"><h3>Pocos grupos</h3><p>Con seis alcaldías los errores agrupados son imprecisos; por eso se usa t con 5 gl, y un wild cluster bootstrap da una conclusión similar.</p></article>
+      <article class="block"><h3>Expansión del sistema</h3><p>Tres alcaldías entran en 2023 con pocos viajes. La Tabla IV muestra que el coeficiente es sensible a esos trimestres de entrada.</p></article>
+      <article class="block"><h3>Control de estaciones</h3><p>Las estaciones activas se cuentan con estaciones que tuvieron viajes, así que dependen del propio resultado.</p></article>
     </div>
 
     <h2 class="sub2">Preguntas frecuentes</h2>
@@ -625,25 +687,26 @@ pre.cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 
     <div class="two" style="margin-top:36px">
       <div>
-        <h3>Con Docker, dos comandos</h3>
-        <p class="caption">Desde la carpeta del repositorio clonado. Corre <code>PaneldeDatos</code> y luego <code>Modelado</code>, y deja tablas y figuras en <code>salidas/</code>.</p>
-        <pre class="cmd"><button type="button" class="copy" data-copy="cmd-docker">Copiar</button><code id="cmd-docker">docker build -t seguridad-ecobici .
-docker run --rm -v "$(pwd)/salidas:/app/salidas" seguridad-ecobici</code></pre>
+        <h3>Con Docker</h3>
+        <p class="caption">La replicación vive en el repositorio <a href="https://github.com/carlaAndr/dockerSeguridadEcobici">dockerSeguridadEcobici</a>. Corre los notebooks en orden, deja tablas y figuras en <code>salidas/</code> y compara cada archivo contra <code>artefactos/</code>.</p>
+        <pre class="cmd"><button type="button" class="copy" data-copy="cmd-docker">Copiar</button><code id="cmd-docker">git clone https://github.com/carlaAndr/dockerSeguridadEcobici.git
+cd dockerSeguridadEcobici
+docker compose run --rm analisis</code></pre>
+        <p class="caption" style="margin-top:10px">Sin <code>docker compose</code>: <code>docker build -t seguridad-ecobici .</code> y luego <code>docker run --rm -v "$(pwd)/salidas:/app/salidas" seguridad-ecobici</code>.</p>
       </div>
       <div>
         <h3>Organización del repositorio</h3>
         <pre class="cmd"><code>seguridadEcobici/
-├── README.md            orden de los notebooks y comandos
-├── Dockerfile
-├── requirements.txt     librerías con sus versiones
-├── PaneldeDatos.ipynb   1. arma el panel
-├── Modelado.ipynb       2. modelos, tablas, figuras
+├── README.md            qué es cada archivo y cómo correrlo
 ├── index.html           este sitio
-├── artefactos/          panel_ecobici.csv, modelado.csv
-├── dataIngestion/       viajes de ECOBICI
+├── documento/           el caso en PDF
+├── images/              diagrama causal
+├── PaneldeDatos.ipynb   arma el panel
+├── Modelado.ipynb       modelos, tablas y figuras
+├── dataIngestion/       lectura de cada fuente
 ├── ensu/                tabulados de la ENSU
 ├── finanzasPublicas/    EFIPEM
-└── salidas/             lo que genera Docker</code></pre>
+└── artefactos/          panel_ecobici.csv, modelado.csv</code></pre>
       </div>
     </div>
   </section>
@@ -653,8 +716,8 @@ docker run --rm -v "$(pwd)/salidas:/app/salidas" seguridad-ecobici</code></pre>
     <h2>Documento, repositorio y contacto</h2>
     <div class="about">
       <article class="block"><h3>Documento</h3><p>Trabajo completo en formato IEEE, con métodos, supuestos, tablas y referencias.</p><p><a id="lnk-doc" href="documento/seguridad_ecobici.pdf">Leer el documento</a></p></article>
-      <article class="block"><h3>Repositorio</h3><p>Código, datos y notebooks para replicar todo el análisis.</p><p><a href="https://github.com/carlaAndr/seguridadEcobici">github.com/carlaAndr/seguridadEcobici</a></p></article>
-      <article class="block"><h3>Uso de IA</h3><p id="ia-text">Usé Claude (Anthropic) como asistente para escribir y depurar código, revisar la redacción y construir esta página. Las decisiones de análisis son mías, y verifiqué cada cifra contra las salidas de los notebooks.</p></article>
+      <article class="block"><h3>Repositorios</h3><p>Código, datos y notebooks del análisis, y la versión que corre todo con Docker.</p><p><a href="https://github.com/carlaAndr/seguridadEcobici">Repositorio del proyecto</a><br><a href="https://github.com/carlaAndr/dockerSeguridadEcobici">Repositorio con Docker</a></p></article>
+      <article class="block"><h3>Uso de IA</h3><p id="ia-text">Usé ChatGPT y Claude como apoyo para procesar datos, escribir y revisar código, preparar Docker, construir gráficas y esta página, y redactar documentación. La definición del problema, las decisiones de análisis y la interpretación son mías.</p></article>
       <article class="block"><h3>Contacto</h3><p>Carla Andrea Sosa Peralta, ITAM.</p><p id="contacto"><a href="https://github.com/carlaAndr">github.com/carlaAndr</a></p></article>
     </div>
   </section>
@@ -700,7 +763,7 @@ const css = v=>getComputedStyle(document.documentElement).getPropertyValue(v).tr
 const $ = s=>document.querySelector(s);
 
 let RAW=[], MOD=[], PERIODS=[], MAPP=[], PER_LABEL={};
-const STATE={g1:"T",esc:"log",bv:"raw",mVar:"ins",mT:0,grp:"Total",spec:"1",hidden:{}};
+const STATE={g1:"T",esc:"log",g4:"raw",mVar:"ins",mT:0,grp:"Total",spec:"1",hidden:{}};
 
 /* ==================================================================
    CSV (admite comillas)
@@ -936,7 +999,7 @@ function renderG3(){
   const D=OBS("T"), idx=new Map(D.map(o=>[o.alc+"|"+o.per,o]));
   const dark=css("--paper").toLowerCase()==="#121a1d";
   const a=hex(dark?"#1f3d31":"#d6eee1"), b=hex(dark?"#7fe0ad":"#0f5a3a");
-  heatmap("g3",{rows:Object.keys(ALC).map(k=>({key:k,label:ALC[k].n})),cats:PERIODS,h:300,
+  heatmap("g3",{rows:Object.keys(ALC).map(k=>({key:k,label:ALC[k].n})),cats:PERIODS,h:340,
     cell:(k,p)=>{const o=idx.get(k+"|"+p); return o?{z:Math.log10(o.n),tip:`${fmt.format(o.n)} viajes<br>${fmt.format(o.est)} estaciones activas`}:null;},
     color:z=>{const t=Math.max(0,Math.min(1,(z-2)/4.4));return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(",")})`;}});
 }
@@ -946,8 +1009,6 @@ function renderG5(){
   const years=[...new Set(RAW.map(r=>r.anio))].sort();
   const tot=Object.fromEntries(years.map(y=>[y,RAW.filter(r=>r.anio===y).reduce((s,r)=>s+r.n_viajes,0)]));
   const col={F:"#C23B5A",M:"#2F6DB5",O:css("--muted"),"?":css("--line")};
-  {const tf=RAW.filter(r=>r.genero==="F").reduce((s,r)=>s+r.n_viajes,0)/RAW.reduce((s,r)=>s+r.n_viajes,0);
-    const el5=$("#g5-title"); if(el5) el5.textContent=`Las mujeres hacen ${num(100*tf,0)} % de los viajes, sin cambios grandes en el tiempo`;}
   stacked("g5",{h:400,cats:years.map(String),segs:["F","M","O","?"].map(g=>({name:GEN[g],color:col[g],
     values:years.map(y=>100*RAW.filter(r=>r.anio===y&&r.genero===g).reduce((s,r)=>s+r.n_viajes,0)/tot[y])}))});
 }
@@ -965,19 +1026,44 @@ function colorAt(stops,t){t=Math.max(0,Math.min(1,t));const s=t*(stops.length-1)
 const mapVal=(o,v)=>v==="ins"?o.ins:v==="seg"?o.seg:Math.log10(o.n);
 const norm=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
 
+
+function renderG4(){
+  const D=OBS("T"), within=STATE.g4==="within", mean={};
+  for(const a in ALC){const s=D.filter(o=>o.alc===a); if(s.length) mean[a]={x:s.reduce((t,o)=>t+o.ins,0)/s.length,y:s.reduce((t,o)=>t+o.y,0)/s.length};}
+  const P=D.map(o=>({a:o.alc,per:o.per,x:within?o.ins-mean[o.alc].x:o.ins,y:within?o.y-mean[o.alc].y:o.y}));
+  const fit=linfit(P.map(p=>p.x),P.map(p=>p.y)), p10=sgn(100*(Math.exp(10*fit.b)-1),1);
+  $("#g4-cap").innerHTML= within
+    ? `<b>Pendiente de la recta: ${num(fit.b,3)}</b> (${p10} de viajes por 10 puntos). Cada alcaldía se compara con su propio promedio, como hace el efecto fijo de alcaldía, así que desaparecen las diferencias permanentes entre ellas. Todavía mezcla tendencias comunes a toda la ciudad, como el crecimiento del sistema, que el modelo quita con los efectos de trimestre.`
+    : `<b>Pendiente de la recta: ${num(fit.b,3)}</b> (${p10} de viajes por 10 puntos). Entre alcaldías, más inseguridad va con menos viajes, pero esta comparación mezcla diferencias permanentes, como el tamaño de la red o la centralidad.`;
+  scatter("g4",{zero:within,fit,h:400,
+    groups:Object.keys(ALC).map(a=>({name:ALC[a].n,color:ALC[a].c,pts:P.filter(p=>p.a===a).map(p=>({x:p.x,y:p.y,
+      tip:`<b>${ALC[a].n}</b>, ${PER_LABEL[p.per]}<br>${within?"Inseguridad vs. su promedio":"Inseguridad"}: ${within?num(p.x,1)+" pp":pct(p.x)}<br>${within?"log viajes vs. su promedio":"log(1 + viajes)"}: ${num(p.y,2)}`}))})),
+    xTitle:within?"Inseguridad respecto al promedio de la alcaldía (pp)":"% que se siente inseguro",
+    yTitle:within?"log viajes respecto al promedio":"log(1 + viajes totales)",
+    xFmt:v=>num(v,0), yFmt:v=>num(v,1)});
+}
+function renderG5b(){
+  renderG5();
+  const tf=RAW.filter(r=>r.genero==="F").reduce((s,r)=>s+r.n_viajes,0)/RAW.reduce((s,r)=>s+r.n_viajes,0);
+  $("#g5-title").textContent=`Gráfica 5. Las mujeres hacen ${num(100*tf,0)} % de los viajes`;
+}
+
+/* ---------- Mapa con controles encimados ---------- */
 function initMap(){
   const sl=$("#map-t"); sl.max=MAPP.length-1; sl.value=STATE.mT=MAPP.length-1;
   sl.addEventListener("input",e=>{STATE.mT=+e.target.value;renderMap();});
   $("#map-play").addEventListener("click",togglePlay);
   if(typeof window.L==="undefined"||!window.L.map){
-    $("#mapa").innerHTML=`<div class="missing" style="margin:16px">No se pudo cargar la librería del mapa (Leaflet). Revisa tu conexión; el ranking de la derecha sí está disponible.</div>`;
+    $("#mapa").innerHTML=`<div class="mapmsg">No se pudo cargar la librería del mapa (Leaflet). Revisa tu conexión y recarga la página.</div>`;
     return;
   }
-  MAP=window.L.map("mapa",{scrollWheelZoom:false}).setView([19.405,-99.18],12);
-  window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
+  const L=window.L;
+  MAP=L.map("mapa",{scrollWheelZoom:false,zoomControl:false}).setView([19.405,-99.175],12);
+  L.control.zoom({position:"topright"}).addTo(MAP);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(MAP);
   MAP.on("focus",()=>MAP.scrollWheelZoom.enable()); MAP.on("blur",()=>MAP.scrollWheelZoom.disable());
-  LAYER=window.L.layerGroup().addTo(MAP);
+  LAYER=L.layerGroup().addTo(MAP);
   fetch(RUTA_GEO).then(r=>r.ok?r.json():null).then(g=>{if(g){GEO=g;renderMap();}}).catch(()=>{});
 }
 function togglePlay(){
@@ -991,45 +1077,50 @@ function renderMap(){
   const v=STATE.mVar, R=RAMPS[v], per=MAPP[STATE.mT], D=OBS("T").filter(o=>o.per===per);
   const byA=Object.fromEntries(D.map(o=>[o.alc,o])), tOf=o=>(mapVal(o,v)-R.dom[0])/(R.dom[1]-R.dom[0]);
   $("#map-period").textContent=PER_LABEL[per];
-  if(MAP){
-    const L=window.L; LAYER.clearLayers(); MARK={};
-    if(GEO){ if(GEOLAYER) MAP.removeLayer(GEOLAYER);
-      GEOLAYER=L.geoJSON(GEO,{interactive:false,style:ft=>{const key=Object.values(ft.properties||{}).map(norm).find(s=>ALC[s]); const o=key&&byA[key];
-        return o?{color:"#17232A",weight:1.2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.5}:{color:"#55666C",weight:.6,fillOpacity:0,dashArray:"3 3"};}}).addTo(MAP); }
-    const maxN=Math.max(...OBS("T").map(o=>o.n));
-    for(const a in ALC){ const o=byA[a], info=ALC[a];
-      if(!o){ MARK[a]=L.circleMarker(info.ll,{radius:7,color:"#55666C",weight:1.5,dashArray:"3 3",fillOpacity:0}).bindTooltip(`${info.n}: sin dato en ${PER_LABEL[per]}`).addTo(LAYER); continue; }
-      const r=8+34*Math.sqrt(o.n/maxN);
-      MARK[a]=L.circleMarker(info.ll,{radius:r,color:"#ffffff",weight:2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.9})
-        .bindTooltip(`${info.n}: ${v==="via"?fmt.format(o.n)+" viajes":pct(v==="ins"?o.ins:o.seg)}`,{direction:"top",offset:[0,-r]})
-        .bindPopup(`<div class="pop"><h4>${info.n}, ${PER_LABEL[per]}</h4><dl><dt>Se siente insegura</dt><dd>${pct(o.ins)}</dd><dt>Se siente segura</dt><dd>${pct(o.seg)}</dd><dt>Viajes</dt><dd>${fmt.format(o.n)}</dd><dt>Estaciones activas</dt><dd>${fmt.format(o.est)}</dd><dt>Inversión pública</dt><dd>${Number.isFinite(o.inv)?fmtC.format(o.inv)+" MXN":"sin dato"}</dd></dl></div>`).addTo(LAYER);
-    }
-  }
   const ends=v==="via"?["1 mil","2.5 M"]:[R.dom[0]+" %",R.dom[1]+" %"];
-  $("#map-legend").innerHTML=`<div>Color: ${R.lbl}</div><div class="ramp" style="background:linear-gradient(90deg,${R.stops.join(",")})"></div><div class="ends"><span>${ends[0]}</span><span>${ends[1]}</span></div><div style="margin-top:6px">Tamaño: viajes del trimestre</div>`;
-  const list=Object.keys(ALC).map(a=>({a,o:byA[a]})).sort((p,q)=>(q.o?mapVal(q.o,v):-1e9)-(p.o?mapVal(p.o,v):-1e9));
-  $("#map-rank").innerHTML=list.map(({a,o})=>{const val=o?(v==="via"?fmtC.format(o.n):pct(v==="ins"?o.ins:o.seg)):"sin dato";
-    return `<li class="${o?"":"na"}"><button type="button" data-a="${a}"><span class="nm">${ALC[a].n}</span><span class="vl">${val}</span><span class="bar"><i style="width:${o?Math.max(4,100*tOf(o)):0}%;background:${o?colorAt(R.stops,tOf(o)):"transparent"}"></i></span></button></li>`;}).join("");
-  $("#map-rank").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.a; if(MAP){MAP.flyTo(ALC[a].ll,13,{duration:.6});MARK[a]?.openPopup();}}));
-  $("#map-note").textContent=GEO?"Polígonos: límites de alcaldías desde artefactos/alcaldias.geojson.":"Para dibujar los límites de cada alcaldía, agrega artefactos/alcaldias.geojson al repositorio.";
+  $("#map-legend").innerHTML=`<span class="l">Color: ${R.lbl}</span><div class="ramp" style="background:linear-gradient(90deg,${R.stops.join(",")})"></div><div class="ends"><span>${ends[0]}</span><span>${ends[1]}</span></div><div class="size-note" style="margin-top:6px">Tamaño del círculo: viajes del trimestre</div>`;
+  $("#map-note").textContent=GEO?"Límites de alcaldías desde artefactos/alcaldias.geojson.":"Los círculos marcan la ubicación aproximada de cada alcaldía. Para dibujar sus límites, agrega artefactos/alcaldias.geojson al repositorio.";
+  if(!MAP) return;
+  const L=window.L; LAYER.clearLayers(); MARK={};
+  if(GEO){ if(GEOLAYER) MAP.removeLayer(GEOLAYER);
+    GEOLAYER=L.geoJSON(GEO,{interactive:false,style:ft=>{const key=Object.values(ft.properties||{}).map(norm).find(s=>ALC[s]); const o=key&&byA[key];
+      return o?{color:"#17232A",weight:1.2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.5}:{color:"#55666C",weight:.6,fillOpacity:0,dashArray:"3 3"};}}).addTo(MAP); }
+  const maxN=Math.max(...OBS("T").map(o=>o.n));
+  for(const a in ALC){ const o=byA[a], info=ALC[a];
+    if(!o){ MARK[a]=L.circleMarker(info.ll,{radius:7,color:"#55666C",weight:1.5,dashArray:"3 3",fillOpacity:0}).bindTooltip(`${info.n}: sin dato en ${PER_LABEL[per]}`).addTo(LAYER); continue; }
+    const r=9+34*Math.sqrt(o.n/maxN);
+    MARK[a]=L.circleMarker(info.ll,{radius:r,color:"#ffffff",weight:2,fillColor:colorAt(R.stops,tOf(o)),fillOpacity:.9})
+      .bindTooltip(`${info.n}: ${v==="via"?fmt.format(o.n)+" viajes":pct(v==="ins"?o.ins:o.seg)}`,{direction:"top",offset:[0,-r]})
+      .bindPopup(`<div class="pop"><h4>${info.n}, ${PER_LABEL[per]}</h4><dl><dt>Se siente insegura</dt><dd>${pct(o.ins)}</dd><dt>Se siente segura</dt><dd>${pct(o.seg)}</dd><dt>Viajes</dt><dd>${fmt.format(o.n)}</dd><dt>Estaciones activas</dt><dd>${fmt.format(o.est)}</dd><dt>Inversión pública</dt><dd>${Number.isFinite(o.inv)?fmtC.format(o.inv)+" MXN":"sin dato"}</dd></dl></div>`).addTo(LAYER);
+  }
 }
 
 /* ==================================================================
-   Resultados (lee modelado.csv)
+   Resultados: todo depende del grupo y del ejercicio elegidos
    ================================================================== */
 const pick=f=>MOD.filter(f);
 const beta=(seccion,grupo,ej,variante)=>MOD.find(r=>r.seccion===seccion&&r.variable==="inseguro_pct"&&(grupo==null||r.grupo===grupo)&&(ej==null||r.ejercicio===ej)&&(variante==null||r.variante===variante));
 const covers=r=>r.ic_lo<0&&r.ic_hi>0;
-const tipRow=r=>`<b>${r.variante||r.grupo+", ej. "+r.ejercicio}</b><br>Por +10 puntos: ${sgn(r.pct10)}<br>IC 95 %: [${sgn(r.pct10_lo)}, ${sgn(r.pct10_hi)}]<br>β₁ = ${num(r.coef)} (EE ${num(r.ee)})<br>p = ${num(r.p,3)} con t de ${r.gl} gl; N = ${r.n}`;
+const gname=g=>g.replace("-","−");
+const tipRow=r=>`<b>${r.variante||gname(r.grupo)+", ej. "+r.ejercicio}</b><br>Por +10 puntos: ${sgn(r.pct10)}<br>IC 95 %: [${sgn(r.pct10_lo)}, ${sgn(r.pct10_hi)}]<br>β₁ = ${num(r.coef)} (EE ${num(r.ee)})<br>p = ${num(r.p,3)} con t de ${r.gl} gl; N = ${r.n}`;
 const ORDER=[["Total",1],["Total",2],["Mujeres",1],["Mujeres",2],["Hombres",1],["Hombres",2]];
+const DEP={Total:"viajes",Mujeres:"viajes de mujeres",Hombres:"viajes de hombres"};
 
 function renderModel(){
   const g=STATE.grp, ej=+STATE.spec, b=beta("principal",g,ej);
   if(!b) throw new Error(`modelado.csv no tiene el modelo principal de ${g}, ejercicio ${ej}`);
+  document.querySelectorAll("[data-chip]").forEach(c=>c.textContent=`${g}, ejercicio ${ej}`);
+  document.querySelectorAll("[data-chip-ej]").forEach(c=>c.textContent=`Ejercicio ${ej}`);
+  $("#m-now").innerHTML=`Estás viendo <b>${g==="Total"?"el total de viajes":"los viajes de "+g.toLowerCase()}, ejercicio ${ej}</b>. Todo lo que está dentro de este recuadro cambia con tu selección.`;
+
+  // Especificación
+  $("#eq").innerHTML=`log(1 + <i>${DEP[g]}</i><sub><i>it</i></sub>) = <span class="b">β<sub>1</sub></span>·<i>inseguro</i><sub><i>it</i></sub> + γ·<i>estaciones</i><sub><i>it</i></sub>${ej===2?" + θ·log(<i>inversión</i><sub><i>it</i></sub>)":""} + α<sub><i>i</i></sub> + λ<sub><i>t</i></sub> + ε<sub><i>it</i></sub>`;
+  $("#eq-cap").innerHTML=`Variable dependiente: ${DEP[g]} que empiezan en la alcaldía <i>i</i> en el trimestre <i>t</i>${ej===2?"; el ejercicio 2 agrega la inversión pública de la alcaldía":""}. Muestra: ${b.n} observaciones, ${b.n_alcaldias} alcaldías y ${b.n_trimestres} trimestres. Se espera β₁ &lt; 0; la prueba es bilateral, H₀: β₁ = 0 contra H₁: β₁ ≠ 0, con errores agrupados por alcaldía y t de ${b.gl} gl.`;
+
+  // Efecto y coeficientes
   const rows=pick(r=>r.modelo===b.modelo);
-  $("#eq-inv").innerHTML= ej===2 ? " + θ·log(<i>inversión</i><sub><i>it</i></sub>)" : "";
-  $("#m-beta").textContent=`${sgn(b.pct10)}`;
-  $("#m-ci").innerHTML=`en viajes por +10 puntos de población insegura<br>IC 95 %: [${sgn(b.pct10_lo)}, ${sgn(b.pct10_hi)}] | β₁ = ${num(b.coef)}, IC [${num(b.ic_lo)}, ${num(b.ic_hi)}] | p = ${num(b.p,3)}`;
+  $("#m-beta").textContent=sgn(b.pct10);
+  $("#m-ci").innerHTML=`en ${DEP[g]} por +10 puntos de población insegura<br>IC 95 %: [${sgn(b.pct10_lo)}, ${sgn(b.pct10_hi)}] | β₁ = ${num(b.coef)}, IC [${num(b.ic_lo)}, ${num(b.ic_hi)}] | p = ${num(b.p,3)}`;
   $("#m-verdict").innerHTML=`${covers(b)?"El intervalo incluye el cero, así que no se rechaza H₀ al 5 %.":"El intervalo excluye el cero, así que se rechaza H₀ al 5 %."} `+
     (b.coef>0?"El signo estimado es positivo, contrario al esperado, pero no se distingue de cero.":"El signo estimado es negativo, como se esperaba.")+
     ` Los datos son compatibles con cambios desde ${sgn(b.pct10_lo,0)} hasta ${sgn(b.pct10_hi,0)} por cada 10 puntos.`;
@@ -1039,81 +1130,47 @@ function renderModel(){
   $("#m-meta").innerHTML=`<span>N = ${b.n}</span><span>Alcaldías = ${b.n_alcaldias}</span><span>Trimestres = ${b.n_trimestres}</span><span>t con ${b.gl} gl</span>`;
   $("#m-mde").innerHTML=Number.isFinite(b.mde_pct)?`Con el error estándar de esta especificación, solo se detectarían con 80 % de probabilidad asociaciones de alrededor de <b>${num(b.mde_pct,1)} % por punto</b>, unos ${num(10*b.mde_pct,0)} % por cada 10 puntos. Asociaciones más pequeñas pueden existir y no verse con seis alcaldías.`:"";
 
-  // Tabla III: gráfica + tabla
+  // Tabla III
   const P=ORDER.map(([gg,ee])=>beta("principal",gg,ee)).filter(Boolean);
   const D=[1,2].map(e=>beta("diferencia",null,e)).filter(Boolean);
   const allC=P.every(covers);
   $("#t3-title").textContent=`Tabla III. ${allC?"Todos los intervalos incluyen el cero":"No todos los intervalos incluyen el cero"}`;
-  $("#t3-what").innerHTML=`Qué mirar: ${allC?"en los seis modelos el punto es positivo, pero ningún intervalo excluye el cero; tampoco la diferencia entre mujeres y hombres.":"qué intervalos excluyen el cero."} Usa los botones de arriba para resaltar una fila.`;
-  const fr=P.map(r=>({label:`${r.grupo}, ej. ${r.ejercicio}`,est:r.pct10,lo:r.pct10_lo,hi:r.pct10_hi,square:r.ejercicio===2,hl:r.grupo===g&&r.ejercicio===ej,tip:tipRow(r)}));
-  D.forEach((r,i)=>fr.push({label:`Mujeres − hombres, ej. ${r.ejercicio}`,est:r.pct10,lo:r.pct10_lo,hi:r.pct10_hi,square:r.ejercicio===2,gap:i===0,color:css("--muted"),tip:tipRow({...r,grupo:"Mujeres − hombres"})}));
+  $("#t3-what").innerHTML=`Qué mirar: ${allC?(P.every(r=>r.coef>0)?"en los seis modelos el punto es positivo, pero ningún intervalo excluye el cero":"ningún intervalo excluye el cero")+(D.every(covers)?"; tampoco el de la diferencia entre mujeres y hombres.":"."):"qué intervalos excluyen el cero."} Tu selección, <b>${g}</b>, aparece resaltada; el ejercicio elegido va relleno.`;
+  const fr=P.map(r=>({label:`${r.grupo}, ej. ${r.ejercicio}`,est:r.pct10,lo:r.pct10_lo,hi:r.pct10_hi,square:r.ejercicio===2,
+    hl:r.grupo===g&&r.ejercicio===ej,color:r.grupo===g?css("--lane"):css("--muted"),tip:tipRow(r)}));
+  D.forEach((r,i)=>fr.push({label:`Mujeres − hombres, ej. ${r.ejercicio}`,est:r.pct10,lo:r.pct10_lo,hi:r.pct10_hi,square:r.ejercicio===2,gap:i===0,
+    hl:r.ejercicio===ej&&g!=="Total",color:css("--muted"),tip:tipRow(r)}));
   forest("m1",{rows:fr,xTitle:"% de viajes por +10 puntos"});
-  $("#t3").innerHTML=`<thead><tr><th>Modelo</th><th class="num">β₁</th><th class="num">EE</th><th class="num">IC 95 %</th><th class="num">p</th><th class="num">N</th><th class="num">% por 10 pts [IC]</th></tr></thead><tbody>`+
-    [...P,...D].map(r=>`<tr class="${r.seccion==="principal"&&r.grupo===g&&r.ejercicio===ej?"hl":""}"><td>${r.grupo.replace("-","−")}, ej. ${r.ejercicio}</td><td class="num">${num(r.coef)}</td><td class="num">${num(r.ee)}</td><td class="num">[${num(r.ic_lo)}, ${num(r.ic_hi)}]</td><td class="num">${num(r.p,3)}</td><td class="num">${r.n}</td><td class="num">${sgn(r.pct10)} [${sgn(r.pct10_lo,0)}, ${sgn(r.pct10_hi,0)}]</td></tr>`).join("")+`</tbody>`;
+  $("#t3").innerHTML=`<thead><tr><th>Modelo</th><th class="num">β₁</th><th class="num">IC 95 %</th><th class="num">p</th><th class="num">N</th><th class="num">% por 10 pts</th></tr></thead><tbody>`+
+    [...P,...D].map(r=>`<tr class="${r.seccion==="principal"&&r.grupo===g?"hl":""}"><td>${gname(r.grupo)}, ej. ${r.ejercicio}</td><td class="num">${num(r.coef)}</td><td class="num">[${num(r.ic_lo)}, ${num(r.ic_hi)}]</td><td class="num">${num(r.p,3)}</td><td class="num">${r.n}</td><td class="num">${sgn(r.pct10)}</td></tr>`).join("")+`</tbody>`;
 
-  // Tabla IV
-  const rob=pick(r=>r.seccion==="robustez"&&r.variable==="inseguro_pct");
+  // Tabla IV (robustez del grupo elegido)
+  let rob=pick(r=>r.seccion==="robustez"&&r.variable==="inseguro_pct"&&r.grupo===g), fallback=false;
+  if(!rob.length){ rob=pick(r=>r.seccion==="robustez"&&r.variable==="inseguro_pct"&&r.grupo==="Total"); fallback=true; }
   if(rob.length){
     const full=rob[0], neg=rob.filter(r=>r.coef<0).length, robC=rob.every(covers);
     $("#t4-title").textContent=`Tabla IV. ${neg&&neg<rob.length?"El signo cambia entre variantes":"El signo se mantiene"}${robC?", y ningún intervalo excluye el cero":""}`;
     const ent=rob.find(r=>/entrada/.test(r.variante)), lg=rob.find(r=>/log\(estaciones\)/.test(r.variante));
-    $("#t4-what").innerHTML=`Qué mirar: el punto se mueve de ${sgn(Math.min(...rob.map(r=>r.pct10)),1)} a ${sgn(Math.max(...rob.map(r=>r.pct10)),1)}${lg?`; con log(estaciones) pasa a ${sgn(lg.pct10,1)}`:""}${ent?` y sin los trimestres de entrada de las alcaldías nuevas casi desaparece (${sgn(ent.pct10,1)})`:""}. La conclusión no cambia.`;
-    forest("m2",{clip:60,ref:full.pct10,xTitle:"% de viajes por +10 puntos (ej. 1, total)",
+    $("#t4-what").innerHTML=`Qué mirar, para <b>${fallback?"el total de viajes":g==="Total"?"el total de viajes":"los viajes de "+g.toLowerCase()}</b>: el punto se mueve de ${sgn(Math.min(...rob.map(r=>r.pct10)),1)} a ${sgn(Math.max(...rob.map(r=>r.pct10)),1)}${lg?`; con log(estaciones) pasa a ${sgn(lg.pct10,1)}`:""}${ent?` y sin los trimestres de entrada de las alcaldías nuevas queda en ${sgn(ent.pct10,1)}`:""}. ${robC?"La conclusión no cambia.":""}`;
+    $("#t4-cap").textContent=`Ejercicio 1 (las variantes de robustez se estiman sobre el modelo principal). ${fallback?"modelado.csv solo trae la robustez del total; corre de nuevo la última celda de Modelado.ipynb para tenerla por sexo. ":""}Con menos alcaldías bajan los grados de libertad y los intervalos se ensanchan.`;
+    forest("m2",{clip:60,ref:full.pct10,xTitle:"% de viajes por +10 puntos (ejercicio 1)",
       rows:rob.map((r,i)=>({label:r.variante,est:r.pct10,lo:r.pct10_lo,hi:r.pct10_hi,hl:i===0,gap:i===1||/^Sin estaciones/.test(r.variante),tip:tipRow(r)}))});
-    $("#t4").innerHTML=`<thead><tr><th>Variante</th><th class="num">β₁</th><th class="num">IC 95 %</th><th class="num">gl</th><th class="num">p</th><th class="num">N</th><th class="num">% por 10 pts</th></tr></thead><tbody>`+
-      rob.map((r,i)=>`<tr class="${i===0?"hl":""}"><td>${r.variante}</td><td class="num">${num(r.coef)}</td><td class="num">[${num(r.ic_lo)}, ${num(r.ic_hi)}]</td><td class="num">${r.gl}</td><td class="num">${num(r.p,3)}</td><td class="num">${r.n}</td><td class="num">${sgn(r.pct10)}</td></tr>`).join("")+`</tbody>`;
+    $("#t4").innerHTML=`<thead><tr><th>Variante</th><th class="num">β₁</th><th class="num">IC 95 %</th><th class="num">gl</th><th class="num">p</th><th class="num">N</th></tr></thead><tbody>`+
+      rob.map((r,i)=>`<tr class="${i===0?"hl":""}"><td>${r.variante}</td><td class="num">${num(r.coef)}</td><td class="num">[${num(r.ic_lo)}, ${num(r.ic_hi)}]</td><td class="num">${r.gl}</td><td class="num">${num(r.p,3)}</td><td class="num">${r.n}</td></tr>`).join("")+`</tbody>`;
   }
 
-  // Diferencia mujeres − hombres
+  // Diferencia mujeres − hombres (depende del ejercicio)
   const dif=beta("diferencia",null,ej)||D[0];
   if(dif){
     $("#m-diff").innerHTML=`<div class="beta" style="font-size:clamp(1.9rem,3.6vw,2.6rem)">${sgn(dif.pct10,2)}</div>
       <p class="ci">en la razón de viajes mujeres/hombres por +10 puntos<br>IC 95 %: [${sgn(dif.pct10_lo,1)}, ${sgn(dif.pct10_hi,1)}] | p = ${num(dif.p,3)} | ejercicio ${dif.ejercicio}</p>
-      <p class="verdict">${covers(dif)?"El intervalo incluye el cero: no hay evidencia de que mujeres y hombres respondan distinto.":"El intervalo excluye el cero: la respuesta difiere por sexo."}</p>`;
+      <p class="verdict">${covers(dif)?"El intervalo incluye el cero: no hay evidencia de que mujeres y hombres respondan distinto.":"El intervalo excluye el cero: la respuesta difiere por sexo."} Esta comparación usa a ambos grupos, así que no cambia con el selector de grupo, solo con el de ejercicio.</p>`;
     $("#faq-6").textContent=`La diferencia estimada entre mujeres y hombres es de ${sgn(dif.pct10,2)} por cada 10 puntos (IC ${sgn(dif.pct10_lo,1)} a ${sgn(dif.pct10_hi,1)}, p = ${num(dif.p,3)}). ${covers(dif)?"Con estos datos no hay evidencia de que respondan distinto.":"La diferencia se distingue de cero."}`;
   }
 }
 
-/* De dónde sale β₁: tres vistas */
-function residualize(rows,ycol,controls){
-  const levA=[...new Set(rows.map(r=>r.alc))].sort(), levT=[...new Set(rows.map(r=>r.per))].sort();
-  const X=rows.map(r=>[1,...controls.map(c=>r[c]),...levA.slice(1).map(a=>r.alc===a?1:0),...levT.slice(1).map(t=>r.per===t?1:0)]);
-  const K=X[0].length, A=Array.from({length:K},()=>new Array(K).fill(0)), v=new Array(K).fill(0);
-  X.forEach((x,n)=>{for(let i=0;i<K;i++){v[i]+=x[i]*rows[n][ycol];for(let j=0;j<K;j++)A[i][j]+=x[i]*x[j];}});
-  for(let c=0;c<K;c++){let p=c;for(let r=c+1;r<K;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;
-    [A[c],A[p]]=[A[p],A[c]];[v[c],v[p]]=[v[p],v[c]];
-    for(let r=c+1;r<K;r++){const f=A[r][c]/A[c][c];for(let j=c;j<K;j++)A[r][j]-=f*A[c][j];v[r]-=f*v[c];}}
-  const b=new Array(K).fill(0);for(let i=K-1;i>=0;i--){let s=v[i];for(let j=i+1;j<K;j++)s-=A[i][j]*b[j];b[i]=s/A[i][i];}
-  return rows.map((r,n)=>r[ycol]-X[n].reduce((s,x,j)=>s+x*b[j],0));
-}
-let BV=null;
-function prepB(){
-  const D=OBS("T").filter(o=>Number.isFinite(o.ins)&&Number.isFinite(o.est));
-  const raw={x:D.map(o=>o.ins),y:D.map(o=>o.y)};
-  const fe={x:residualize(D,"ins",[]),y:residualize(D,"y",[])};
-  const fee={x:residualize(D,"ins",["est"]),y:residualize(D,"y",["est"])};
-  const sl={}; for(const [k,v] of Object.entries({raw,fe,fee})) sl[k]=linfit(v.x,v.y).b;
-  BV={D,raw,fe,fee,sl};
-}
-function renderB(){
-  if(!BV) prepB();
-  const k=STATE.bv, V=BV[k], fit=linfit(V.x,V.y), D=BV.D;
-  const pc=b=>sgn(100*(Math.exp(10*b)-1),1);
-  const lab={raw:"Datos crudos: compara alcaldías distintas entre sí.",fe:"Sin efectos fijos: cada punto es la desviación de lo esperado para esa alcaldía y ese trimestre.",
-    fee:"Sin efectos fijos ni estaciones: la variación que usa el modelo. Esta pendiente es exactamente β₁."};
-  $("#b-title").textContent=`De dónde sale β₁: la pendiente pasa de ${num(BV.sl.raw,3)} a ${num(BV.sl.fee,4)}`;
-  $("#b-what").innerHTML=`Qué mirar: con los datos crudos la pendiente es negativa (${pc(BV.sl.raw)} por 10 puntos), pero esa relación viene de diferencias permanentes entre alcaldías. Al comparar a cada alcaldía consigo misma y controlar estaciones queda una pendiente pequeña y positiva (${pc(BV.sl.fee)} por 10 puntos), que es β₁ y no se distingue de cero.`;
-  $("#b-cap").textContent=lab[k];
-  const raw=k==="raw";
-  scatter("m3",{zero:!raw,fit,h:400,fitLabel:`Pendiente = ${num(fit.b,4)} (${pc(fit.b)} por 10 pts)`,
-    groups:Object.keys(ALC).map(a=>({name:ALC[a].n,color:ALC[a].c,pts:D.map((o,i)=>({o,i})).filter(z=>z.o.alc===a).map(({o,i})=>({x:V.x[i],y:V.y[i],
-      tip:`<b>${ALC[a].n}</b>, ${PER_LABEL[o.per]}<br>${raw?"% inseguro: "+pct(V.x[i]):"Inseguridad, desviación: "+num(V.x[i],1)+" pp"}<br>${raw?"log(1 + viajes): "+num(V.y[i],2):"log viajes, desviación: "+num(V.y[i],3)}`}))})),
-    xTitle:raw?"% que se siente inseguro":"% inseguro, desviación de lo esperado (pp)",
-    yTitle:raw?"log(1 + viajes totales)":"log(1 + viajes), desviación",xFmt:v=>num(v,0),yFmt:v=>num(v,raw?0:1)});
-}
-
 /* Explorador de datos */
-const EX={rows:[],limit:60};
+const EX={rows:[],limit:60}; let RAW_HEADER=[];
 function initExplorer(){
   const alcSel=$("#ex-alc"), perSel=$("#ex-per");
   Object.keys(ALC).forEach(a=>alcSel.insertAdjacentHTML("beforeend",`<option value="${a}">${ALC[a].n}</option>`));
@@ -1126,8 +1183,6 @@ function initExplorer(){
   });
   renderExplorer();
 }
-const RAW_TEXT_HEADER={};
-let RAW_HEADER=[];
 function renderExplorer(){
   const q=norm($("#ex-q").value), a=$("#ex-alc").value, p=$("#ex-per").value, s=$("#ex-sex").value;
   EX.rows=RAW.filter(r=>(!a||r.alcaldia_norm===a)&&(!p||perKey(r.anio,r.trimestre)===p)&&(!s||r.genero===s)&&
@@ -1186,10 +1241,9 @@ function renderStats(){
   const b=beta("principal","Total",1);
   if(b){
     $("#stats").innerHTML=[[`β₁ = ${num(b.coef)}`,"modelo principal, total de viajes"],[`[${num(b.ic_lo,3)}, ${num(b.ic_hi,3)}]`,"intervalo de confianza al 95 %","sm"],
-      [`p = ${num(b.p,3)}`,`prueba bilateral, t con ${b.gl} gl`],[`N = ${b.n}`,`${b.n_alcaldias} alcaldías × ${b.n_trimestres} trimestres`],
-      [sgn(b.pct10,1),`viajes por +10 puntos, IC ${sgn(b.pct10_lo,0)} a ${sgn(b.pct10_hi,0)}`]]
+      [`p = ${num(b.p,3)}`,`prueba bilateral, t con ${b.gl} gl`],[`N = ${b.n}`,`${b.n_alcaldias} alcaldías × ${b.n_trimestres} trimestres`]]
       .map(([a,c,k])=>`<div class="stat"><strong class="${k||""}">${a}</strong><span>${c}</span></div>`).join("");
-    $("#hallazgo").innerHTML=`<b>Resultado:</b> β₁ = ${num(b.coef)}, IC 95 % [${num(b.ic_lo,3)}, ${num(b.ic_hi,3)}]; ${covers(b)?"no se rechaza H₀":"se rechaza H₀"}. ${covers(b)?"No se detecta asociación entre la percepción de inseguridad y los viajes en ECOBICI.":""}`;
+    $("#hallazgo").innerHTML=`<b>El resultado:</b> β₁ = ${num(b.coef)}, IC 95 % [${num(b.ic_lo,3)}, ${num(b.ic_hi,3)}]; ${covers(b)?"no se rechaza H₀":"se rechaza H₀"}. ${covers(b)?`Con seis alcaldías entre 2020 y 2026 no se detecta asociación entre la percepción de inseguridad y los viajes (${sgn(b.pct10,1)} por cada 10 puntos, IC ${sgn(b.pct10_lo,0)} a ${sgn(b.pct10_hi,0)}).`:""}`;
     $("#dice").insertAdjacentHTML("beforeend",`<li>Los datos descartan caídas mayores a ${sgn(b.pct10_lo,0).replace("−","")} en los viajes por cada 10 puntos más de población insegura, pero no alcanzan a detectar asociaciones pequeñas.</li>`);
     if(Number.isFinite(b.mde_pct)) $("#faq-1").insertAdjacentText("beforeend",` Con el error estándar del modelo principal, solo se detectarían asociaciones de alrededor de ${num(b.mde_pct,1)} % por punto (unos ${num(10*b.mde_pct,0)} % por cada 10 puntos).`);
   }
@@ -1205,10 +1259,16 @@ function renderPeriodTexts(){
    Menú, ligas y arranque
    ================================================================== */
 function initMenu(){
-  const links=[...document.querySelectorAll("#menu a")], secs=links.map(a=>document.querySelector(a.getAttribute("href")));
-  const set=id=>links.forEach(a=>{const on=a.getAttribute("href")==="#"+id; a.setAttribute("aria-current",String(on)); if(on) a.scrollIntoView({block:"nearest",inline:"nearest"});});
-  const obs=new IntersectionObserver(es=>{const v=es.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0]; if(v) set(v.target.id);},{rootMargin:"-70px 0px -60% 0px"});
-  secs.forEach(s=>s&&obs.observe(s)); set("inicio");
+  const links=[...document.querySelectorAll("#menu a")], secs=links.map(a=>document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  let cur=null, tick=false;
+  const update=()=>{ tick=false;
+    let id=secs[0].id; for(const s of secs){ if(s.getBoundingClientRect().top<=110) id=s.id; }
+    if(innerHeight+scrollY>=document.documentElement.scrollHeight-4) id=secs.at(-1).id;
+    if(id===cur) return; cur=id;
+    links.forEach(a=>{const on=a.getAttribute("href")==="#"+id; a.setAttribute("aria-current",String(on)); if(on) a.scrollIntoView({block:"nearest",inline:"nearest"});});
+  };
+  addEventListener("scroll",()=>{ if(!tick){tick=true;requestAnimationFrame(update);} },{passive:true});
+  update();
 }
 function initLinks(){
   [$("#btn-doc"),$("#lnk-doc")].forEach(a=>a.href=DOCUMENTO);
@@ -1231,11 +1291,10 @@ function safe(fn,boxId){return (...a)=>{try{fn(...a);}catch(e){console.error(e);
   const box=boxId&&document.getElementById(boxId);
   if(box) box.innerHTML=`<div class="missing">No se pudo dibujar: ${e.message}</div>`; else $("#error").insertAdjacentHTML("beforeend",`<div class="err">${e.message}</div>`);}};}
 
-const DATOS=[["g1",renderG1],["g2",renderG2],["g3",renderG3],["g5",renderG5]];
+const DATOS=[["g1",renderG1],["g2",renderG2],["g3",renderG3],["g4",renderG4],["g5",renderG5b]];
 let MODEL_OK=false;
 function renderAllCharts(){
   DATOS.forEach(([id,fn])=>safe(fn,id)());
-  safe(renderB,"m3")();
   if(MODEL_OK) safe(renderModel)();
 }
 let rzT, lastW=innerWidth; window.addEventListener("resize",()=>{ if(Math.abs(innerWidth-lastW)<4) return; lastW=innerWidth; clearTimeout(rzT); rzT=setTimeout(renderAllCharts,150); });
@@ -1258,11 +1317,11 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{render
   MAPP=PERIODS.filter(p=>keys.includes(+p.slice(0,4)*10+ +p.slice(5)));
   let fuente=`Datos: <code>${RUTA_PANEL}</code> (${fmt.format(RAW.length)} filas)`;
 
-  safe(renderFacts)(); safe(renderPeriodTexts)(); safe(initExplorer)();
+  safe(renderPeriodTexts)(); safe(initExplorer)();
   safe(initMap)(); safe(renderMap)();
   seg("g1-grp","g1","g",()=>safe(renderG1,"g1")());
   seg("g1-esc","esc","e",()=>safe(renderG1,"g1")());
-  seg("b-view","bv","b",()=>safe(renderB,"m3")());
+  seg("g4-mode","g4","m",()=>safe(renderG4,"g4")());
   seg("map-var","mVar","v",()=>safe(renderMap)());
 
   try{
